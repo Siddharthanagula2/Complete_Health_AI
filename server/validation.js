@@ -22,15 +22,43 @@ const fullNameSchema = z
   .max(50, 'Full name must be less than 50 characters')
   .regex(/^[a-zA-Z\s]+$/, 'Full name can only contain letters and spaces');
 
-// Signup validation schema
+// Signup validation schema - Updated to match frontend requirements
 const signupSchema = z.object({
   fullName: fullNameSchema,
   email: emailSchema,
-  password: passwordSchema
+  password: passwordSchema,
+  confirmPassword: z.string().min(1, 'Please confirm your password')
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
+});
+
+// Login validation schema
+const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, 'Password is required')
+});
+
+// Password reset request schema
+const passwordResetRequestSchema = z.object({
+  email: emailSchema
+});
+
+// Password reset schema
+const passwordResetSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  newPassword: passwordSchema,
+  confirmPassword: z.string()
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
 });
 
 module.exports = {
   signupSchema,
+  loginSchema,
+  passwordResetRequestSchema,
+  passwordResetSchema,
   passwordSchema,
   emailSchema,
   fullNameSchema
