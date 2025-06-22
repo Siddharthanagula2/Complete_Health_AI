@@ -91,7 +91,7 @@ const findOrCreateUser = async (googleProfile) => {
 };
 
 // ============================================================================
-// MANUAL SIGNUP ENDPOINT - Updated for Firestore with improved validation
+// MANUAL SIGNUP ENDPOINT - Updated for Firestore with complete validation
 // ============================================================================
 
 app.post('/api/auth/signup', async (req, res) => {
@@ -100,10 +100,11 @@ app.post('/api/auth/signup', async (req, res) => {
       email: req.body.email, 
       fullName: req.body.fullName,
       hasPassword: !!req.body.password,
-      hasConfirmPassword: !!req.body.confirmPassword
+      hasConfirmPassword: !!req.body.confirmPassword,
+      agreeToTerms: req.body.agreeToTerms
     });
 
-    // A. Input Validation - Now includes password confirmation
+    // A. Input Validation - Now includes password confirmation and terms agreement
     const validationResult = signupSchema.safeParse(req.body);
     
     if (!validationResult.success) {
@@ -120,7 +121,7 @@ app.post('/api/auth/signup', async (req, res) => {
       });
     }
 
-    const { fullName, email, password, confirmPassword } = validationResult.data;
+    const { fullName, email, password, confirmPassword, agreeToTerms } = validationResult.data;
 
     // B. Check for Existing User
     const existingUser = await firestoreService.findUserByEmail(email);

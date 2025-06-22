@@ -22,12 +22,15 @@ const fullNameSchema = z
   .max(50, 'Full name must be less than 50 characters')
   .regex(/^[a-zA-Z\s]+$/, 'Full name can only contain letters and spaces');
 
-// Signup validation schema - Updated to match frontend requirements
+// Signup validation schema - Now matches frontend exactly
 const signupSchema = z.object({
   fullName: fullNameSchema,
   email: emailSchema,
   password: passwordSchema,
-  confirmPassword: z.string().min(1, 'Please confirm your password')
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  agreeToTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the terms and conditions'
+  })
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword']
