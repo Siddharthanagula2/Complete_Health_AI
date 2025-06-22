@@ -37,22 +37,37 @@ export function InputField({
 
   const inputType = type === 'password' && showPassword ? 'text' : type;
 
+  // Determine if we have validation icons to show
+  const hasValidationIcon = !!(error || success);
+  const isPasswordField = type === 'password';
+
   const getInputClasses = () => {
     const baseClasses = 'w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed';
     
+    // Adjust padding based on what icons are present
+    let paddingRight = 'pr-4'; // Default padding
+    
+    if (isPasswordField && hasValidationIcon) {
+      // Both password toggle and validation icon
+      paddingRight = 'pr-20';
+    } else if (isPasswordField || hasValidationIcon) {
+      // Either password toggle OR validation icon
+      paddingRight = 'pr-12';
+    }
+    
     if (error) {
-      return `${baseClasses} border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50 dark:bg-red-900/10`;
+      return `${baseClasses} ${paddingRight} border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50 dark:bg-red-900/10`;
     }
     
     if (success) {
-      return `${baseClasses} border-green-300 focus:border-green-500 focus:ring-green-200 bg-green-50 dark:bg-green-900/10`;
+      return `${baseClasses} ${paddingRight} border-green-300 focus:border-green-500 focus:ring-green-200 bg-green-50 dark:bg-green-900/10`;
     }
     
     if (isFocused) {
-      return `${baseClasses} border-emerald-300 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800`;
+      return `${baseClasses} ${paddingRight} border-emerald-300 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800`;
     }
     
-    return `${baseClasses} border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`;
+    return `${baseClasses} ${paddingRight} border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`;
   };
 
   return (
@@ -81,25 +96,29 @@ export function InputField({
           className={getInputClasses()}
         />
         
-        {/* Password visibility toggle */}
-        {type === 'password' && (
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            tabIndex={-1}
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-        )}
-        
-        {/* Success/Error icons */}
-        {(error || success) && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            {error && <AlertCircle className="text-red-500" size={20} />}
-            {success && <CheckCircle className="text-green-500" size={20} />}
-          </div>
-        )}
+        {/* Icons container - positioned from right to left */}
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+          {/* Validation icon (rightmost when both are present) */}
+          {hasValidationIcon && (
+            <div className="flex-shrink-0">
+              {error && <AlertCircle className="text-red-500" size={20} />}
+              {success && <CheckCircle className="text-green-500" size={20} />}
+            </div>
+          )}
+          
+          {/* Password visibility toggle (left of validation icon when both are present) */}
+          {isPasswordField && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none focus:text-gray-600 dark:focus:text-gray-300"
+              tabIndex={-1}
+              title={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          )}
+        </div>
       </div>
       
       {/* Error message */}
