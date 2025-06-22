@@ -184,7 +184,6 @@ export function LandingPage() {
                 <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
                   Health
                 </span>
-                .
               </h1>
               
               <p className="text-xl lg:text-2xl text-gray-600 mb-8 leading-relaxed">
