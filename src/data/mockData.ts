@@ -3,7 +3,7 @@ import { User, FoodEntry, ExerciseEntry, Achievement, DailyStats } from '../type
 export const mockUser: User = {
   id: '1',
   name: 'Siddhartha Nagula',
-  email: 'siddharthanagula3@gmail.com',
+  email: 'siddharthanagula@gmail.com',
   age: 28,
   weight: 72, // Calculated from BMI 22 and height 181cm
   height: 181,
