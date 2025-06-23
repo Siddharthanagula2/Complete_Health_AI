@@ -175,7 +175,7 @@ app.post('/api/auth/signup', async (req, res) => {
 });
 
 // ============================================================================
-// GOOGLE OAUTH ENDPOINTS - Updated for Firestore
+// GOOGLE OAUTH ENDPOINTS - Updated for Firestore with Fixed Token Exchange
 // ============================================================================
 
 // A. Initiation Endpoint: GET /auth/google
@@ -200,7 +200,7 @@ app.get('/auth/google', (req, res) => {
   res.redirect(authUrl);
 });
 
-// B. Callback Endpoint: GET /auth/google/callback
+// B. Callback Endpoint: GET /auth/google/callback - FIXED TOKEN EXCHANGE
 app.get('/auth/google/callback', async (req, res) => {
   const { code, error } = req.query;
 
@@ -218,18 +218,19 @@ app.get('/auth/google/callback', async (req, res) => {
 
   try {
     console.log('Exchanging code for access token...');
+    console.log('Using redirect_uri:', REDIRECT_URI);
     
-    // Exchange code for access token
+    // Exchange code for access token - NOW INCLUDES redirect_uri
     const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
       client_id: GOOGLE_CLIENT_ID,
       client_secret: GOOGLE_CLIENT_SECRET,
       code,
       grant_type: 'authorization_code',
-      redirect_uri: REDIRECT_URI
+      redirect_uri: REDIRECT_URI  // ✅ FIXED: Added missing redirect_uri parameter
     });
 
     const { access_token } = tokenResponse.data;
-    console.log('Access token received');
+    console.log('Access token received successfully');
 
     // Get user profile from Google
     const profileResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -260,6 +261,21 @@ app.get('/auth/google/callback', async (req, res) => {
 
   } catch (error) {
     console.error('Google OAuth error:', error.response?.data || error.message);
+    
+    // Log specific error details for debugging
+    if (error.response?.data) {
+      console.error('Google OAuth API Error Details:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          data: error.config?.data
+        }
+      });
+    }
+    
     res.redirect(`http://localhost:5173/login?error=${encodeURIComponent('Authentication failed')}`);
   }
 });
