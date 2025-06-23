@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 // Password validation schema
 const passwordSchema = z
@@ -35,13 +35,6 @@ const signupSchema = z.object({
   message: 'Passwords do not match',
   path: ['confirmPassword']
 });
-
-module.exports = {
-  signupSchema,
-  passwordSchema,
-  emailSchema,
-  fullNameSchema
-};
 
 // Login validation schema
 export const loginSchema = z.object({
@@ -94,4 +87,11 @@ export const getPasswordStrength = (password: string): {
     feedback,
     color: colors[score]
   };
+};
+
+export {
+  signupSchema,
+  passwordSchema,
+  emailSchema,
+  fullNameSchema
 };
