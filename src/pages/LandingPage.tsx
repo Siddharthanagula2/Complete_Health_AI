@@ -82,12 +82,6 @@ export function LandingPage() {
                 Pricing
               </button>
               <button 
-                onClick={() => scrollToSection('science')}
-                className="text-gray-700 hover:text-emerald-600 font-medium transition-colors"
-              >
-                Science
-              </button>
-              <button 
                 onClick={() => scrollToSection('about')}
                 className="text-gray-700 hover:text-emerald-600 font-medium transition-colors"
               >
@@ -136,12 +130,6 @@ export function LandingPage() {
                 className="block w-full text-left text-gray-700 hover:text-emerald-600 font-medium py-2"
               >
                 Pricing
-              </button>
-              <button 
-                onClick={() => scrollToSection('science')}
-                className="block w-full text-left text-gray-700 hover:text-emerald-600 font-medium py-2"
-              >
-                Science
               </button>
               <button 
                 onClick={() => scrollToSection('about')}
@@ -738,6 +726,114 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* About Us Section */}
+      <section id="about" className="py-20 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Our Mission
+            </h2>
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              At Complete Health Tracker, we believe that everyone deserves access to intelligent, 
+              personalized health insights. Our mission is to empower individuals on their wellness 
+              journey by transforming complex health data into actionable guidance that fits seamlessly 
+              into their daily lives.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Content */}
+            <div>
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">
+                Driven by Passion, Powered by Innovation
+              </h3>
+              
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                Our passionate team of health enthusiasts, data scientists, and technology experts 
+                work tirelessly to bridge the gap between cutting-edge health technology and 
+                everyday wellness. We understand that true health transformation happens when 
+                complex data becomes simple, actionable insights.
+              </p>
+
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                From our AI-powered nutrition analysis to predictive health analytics, every 
+                feature is designed with one goal in mind: helping you make informed decisions 
+                about your health with confidence and clarity.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Heart className="text-white" size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Health-First Approach</h4>
+                    <p className="text-gray-600">Every decision we make prioritizes your health outcomes and privacy above all else.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Brain className="text-white" size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Science-Backed Innovation</h4>
+                    <p className="text-gray-600">Our AI algorithms are built on peer-reviewed research and validated health science.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Users className="text-white" size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Community-Centered</h4>
+                    <p className="text-gray-600">We believe in the power of community support and shared health journeys.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Visual */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-2xl p-8 border border-emerald-100">
+                <div className="text-center mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="text-white" size={32} />
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">Our Vision</h4>
+                  <p className="text-gray-600">
+                    A world where everyone has the tools and insights needed to live their healthiest life.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 text-center">
+                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-emerald-600 mb-1">10M+</div>
+                    <div className="text-sm text-gray-600">Health Data Points</div>
+                  </div>
+                  
+                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-blue-600 mb-1">99.9%</div>
+                    <div className="text-sm text-gray-600">Data Accuracy</div>
+                  </div>
+                  
+                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-purple-600 mb-1">24/7</div>
+                    <div className="text-sm text-gray-600">AI Monitoring</div>
+                  </div>
+                  
+                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-orange-600 mb-1">HIPAA</div>
+                    <div className="text-sm text-gray-600">Compliant</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA Section */}
       <section className="py-20 lg:py-32 bg-gradient-to-br from-emerald-600 via-blue-600 to-purple-700 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -829,9 +925,14 @@ export function LandingPage() {
           {/* Bottom Bar */}
           <div className="border-t border-gray-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-              <p className="text-gray-400 text-sm">
-                © 2025 Complete Health Tracker. All rights reserved.
-              </p>
+              <div className="text-center md:text-left">
+                <p className="text-gray-400 text-sm">
+                  © 2025 Complete Health Tracker. All rights reserved.
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Founder: Siddhartha Nagula
+                </p>
+              </div>
               <div className="flex flex-wrap justify-center md:justify-end space-x-6 text-sm">
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
