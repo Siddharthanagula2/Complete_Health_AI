@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, CheckCircle, AlertCircle, Heart } from 'lucide-react';
+import { AlertCircle, Heart } from 'lucide-react';
 import { InputField } from '../../components/auth/InputField';
 import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator';
 import { SocialButton } from '../../components/auth/SocialButton';
@@ -122,7 +122,7 @@ export function SignupPage() {
     // Validate the entire form
     if (!validateForm()) {
       // REQUIRED DEBUG LOGGING
-      console.log('VALIDATION ERRORS:', errors);
+      console.log('ZOD VALIDATION ERRORS:', errors);
       return;
     }
     
@@ -136,7 +136,7 @@ export function SignupPage() {
         if (response.errors) {
           setErrors(response.errors);
           // REQUIRED DEBUG LOGGING for server errors
-          console.log('VALIDATION ERRORS:', response.errors);
+          console.log('ZOD VALIDATION ERRORS:', response.errors);
         }
       }
     } catch (error) {
@@ -249,6 +249,7 @@ export function SignupPage() {
                   name="agreeToTerms"
                   checked={formData.agreeToTerms}
                   onChange={handleInputChange}
+                  onBlur={() => setTouched(prev => ({ ...prev, agreeToTerms: true }))}
                   className="mt-1 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">
