@@ -317,8 +317,8 @@ export function MainApp() {
             </div>
           </div>
 
-          {/* Navigation - Scrollable */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+          {/* Navigation - Scrollable with custom scrollbar */}
+          <nav className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
