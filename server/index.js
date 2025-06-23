@@ -5,11 +5,11 @@ const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
-const { z } = require('zod');
 require('dotenv').config();
 
 const firestoreService = require('./services/firestoreService');
 const aiInsightService = require('./services/aiInsightService');
+const { signupSchema } = require('./validation');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -36,28 +36,8 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3001/auth/google/callback';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-// Validation schemas
-const signupSchema = z.object({
-  fullName: z.string()
-    .min(2, 'Full name must be at least 2 characters')
-    .max(50, 'Full name must be less than 50 characters')
-    .regex(/^[a-zA-Z\s]+$/, 'Full name can only contain letters and spaces'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/\d/, 'Password must contain at least one number')
-    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character'),
-  confirmPassword: z.string(),
-  agreeToTerms: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the terms and conditions'
-  })
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword']
-});
-
+// Login validation schema
+const { z } = require('zod');
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required')
