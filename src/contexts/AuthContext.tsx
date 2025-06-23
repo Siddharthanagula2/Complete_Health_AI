@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { AuthUser, AuthContextType, LoginCredentials, SignupData, PasswordReset } from '../types/auth';
 import { AuthService } from '../services/authService';
-import { mockUser } from '../data/mockData';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -16,20 +15,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Check if user is already authenticated on app start
     const initializeAuth = async () => {
-      // --- DEVELOPER MODE: Auto-login with mock user ---
-      setUser({
-        id: mockUser.id,
-        email: mockUser.email,
-        fullName: mockUser.name,
-        isEmailVerified: true,
-        createdAt: new Date(),
-        lastLogin: new Date()
-      });
-      setIsLoading(false);
-      // --- End of developer mode code ---
-
-      /*
-      // Original authentication logic (commented out for developer mode)
       try {
         const currentUser = AuthService.getCurrentUser();
         const token = AuthService.getToken();
@@ -50,7 +35,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } finally {
         setIsLoading(false);
       }
-      */
     };
 
     initializeAuth();
