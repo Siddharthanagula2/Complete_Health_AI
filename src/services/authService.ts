@@ -2,7 +2,7 @@ import axios from 'axios';
 import { AuthResponse, LoginCredentials, SignupData, PasswordResetRequest, PasswordReset } from '../types/auth';
 
 // Dynamic API base URL - uses relative path for production (Netlify functions) and localhost for development
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
+const API_BASE_URL = import.meta.env.PROD
   ? '/.netlify/functions/index/api/auth'
   : 'http://localhost:3001/api/auth';
 
