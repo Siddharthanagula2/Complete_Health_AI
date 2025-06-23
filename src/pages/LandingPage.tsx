@@ -187,7 +187,7 @@ export function LandingPage() {
               </h1>
               
               <p className="text-xl lg:text-2xl text-gray-600 mb-8 leading-relaxed">
-                CHT unifies your nutrition, fitness, sleep, and medical data, using powerful AI to deliver 
+                Complete Health Tracker unifies your nutrition, fitness, sleep, and medical data, using powerful AI to deliver 
                 predictive insights and personalized guidance for optimal health.
               </p>
 
