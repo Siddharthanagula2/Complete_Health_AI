@@ -72,6 +72,9 @@ app.get('/health', (req, res) => {
 
 // Auth endpoints
 app.post('/api/auth/signup', async (req, res) => {
+  // REQUIRED DEBUG LOGGING - Log raw request body
+  console.log('RAW SIGNUP REQUEST BODY:', req.body);
+  
   try {
     console.log('Signup request received:', { ...req.body, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
     
