@@ -24,8 +24,6 @@ export function SignupPage() {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
   // Check for error in URL params (from OAuth callback)
@@ -46,7 +44,7 @@ export function SignupPage() {
       [name]: newValue
     }));
     
-    // Clear error when user starts typing
+    // Clear error when user starts typing/changing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -73,7 +71,11 @@ export function SignupPage() {
 
   const validateField = (fieldName: string) => {
     try {
-      signupSchema.pick({ [fieldName]: true }).parse({ [fieldName]: formData[fieldName as keyof SignupData] });
+      // Create a partial schema for the specific field
+      const fieldSchema = signupSchema.pick({ [fieldName]: true });
+      fieldSchema.parse({ [fieldName]: formData[fieldName as keyof SignupData] });
+      
+      // Clear error if validation passes
       setErrors(prev => ({
         ...prev,
         [fieldName]: ''
@@ -94,9 +96,13 @@ export function SignupPage() {
       return true;
     } catch (error: any) {
       const newErrors: Record<string, string> = {};
+      
+      // Process all validation errors
       error.errors?.forEach((err: any) => {
-        newErrors[err.path[0]] = err.message;
+        const fieldName = err.path[0];
+        newErrors[fieldName] = err.message;
       });
+      
       setErrors(newErrors);
       return false;
     }
@@ -113,7 +119,10 @@ export function SignupPage() {
     }), {});
     setTouched(allTouched);
     
+    // Validate the entire form
     if (!validateForm()) {
+      // REQUIRED DEBUG LOGGING
+      console.log('VALIDATION ERRORS:', errors);
       return;
     }
     
@@ -126,9 +135,12 @@ export function SignupPage() {
         setSubmitError(response.message || 'Signup failed');
         if (response.errors) {
           setErrors(response.errors);
+          // REQUIRED DEBUG LOGGING for server errors
+          console.log('VALIDATION ERRORS:', response.errors);
         }
       }
     } catch (error) {
+      console.error('Signup error:', error);
       setSubmitError('An unexpected error occurred. Please try again.');
     }
   };
@@ -250,6 +262,8 @@ export function SignupPage() {
                   </Link>
                 </span>
               </label>
+              
+              {/* REQUIRED: Dedicated error display for agreeToTerms */}
               {touched.agreeToTerms && errors.agreeToTerms && (
                 <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
                   <AlertCircle size={14} />
