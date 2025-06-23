@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3001;
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://sparkly-fox-b89f39.netlify.app'],
   credentials: true
 }));
 
@@ -30,10 +30,12 @@ app.use(limiter);
 
 app.use(express.json({ limit: '10mb' }));
 
-// Google OAuth configuration
+// Google OAuth configuration with production URI
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3001/auth/google/callback';
+const REDIRECT_URI = process.env.NODE_ENV === 'production'
+  ? 'https://sparkly-fox-b89f39.netlify.app/.netlify/functions/index/auth/google/callback'
+  : 'http://localhost:3001/auth/google/callback';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Login validation schema
@@ -303,14 +305,18 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('Authorization code present:', !!code);
     console.log('Error present:', !!error);
     
+    const frontendUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://sparkly-fox-b89f39.netlify.app'
+      : 'http://localhost:5173';
+    
     if (error) {
       console.error('OAuth error:', error);
-      return res.redirect(`http://localhost:5173/login?error=${encodeURIComponent('OAuth authorization failed')}`);
+      return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('OAuth authorization failed')}`);
     }
 
     if (!code) {
       console.error('No authorization code received');
-      return res.redirect(`http://localhost:5173/login?error=${encodeURIComponent('No authorization code received')}`);
+      return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('No authorization code received')}`);
     }
 
     console.log('Exchanging authorization code for access token');
@@ -384,7 +390,7 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('JWT token generated, redirecting to dashboard');
     
     // Redirect to frontend with token
-    res.redirect(`http://localhost:5173/dashboard?token=${token}`);
+    res.redirect(`${frontendUrl}/dashboard?token=${token}`);
 
   } catch (error) {
     console.error('Google OAuth callback error:', error);
@@ -395,7 +401,11 @@ app.get('/auth/google/callback', async (req, res) => {
       console.error('Error response status:', error.response.status);
     }
     
-    res.redirect(`http://localhost:5173/login?error=${encodeURIComponent('Authentication failed')}`);
+    const frontendUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://sparkly-fox-b89f39.netlify.app'
+      : 'http://localhost:5173';
+    
+    res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Authentication failed')}`);
   }
 });
 
@@ -671,4 +681,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔐 Google OAuth redirect URI: ${REDIRECT_URI}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
