@@ -17,6 +17,9 @@ import { SleepTracker } from './SleepTracker';
 import { MoodTracker } from './MoodTracker';
 import { HealthInsights } from './HealthInsights';
 import { Achievements } from './Achievements';
+import { FamilyDashboard } from './FamilyDashboard';
+import { ProviderPortal } from './ProviderPortal';
+import { MedicalRecords } from './MedicalRecords';
 import { Settings } from './Settings';
 import { 
   Home, 
@@ -38,6 +41,7 @@ import {
   Heart,
   Lightbulb,
   Trophy,
+  FileText,
   Settings as SettingsIcon,
   LogOut
 } from 'lucide-react';
@@ -59,7 +63,7 @@ import {
 } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
 
-type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'settings';
+type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'family' | 'provider-portal' | 'medical-records' | 'settings';
 
 export function MainApp() {
   const location = useLocation();
@@ -220,7 +224,10 @@ export function MainApp() {
     { id: 'insights', label: 'AI Insights', icon: Lightbulb },
     { id: 'achievements', label: 'Achievements', icon: Trophy },
     { id: 'ai-coach', label: 'AI Coach', icon: Bot },
+    { id: 'family', label: 'Family', icon: Users },
     { id: 'social', label: 'Social', icon: Users },
+    { id: 'provider-portal', label: 'Provider Tools', icon: Stethoscope },
+    { id: 'medical-records', label: 'Medical Records', icon: FileText },
     { id: 'medical', label: 'Medical', icon: Stethoscope },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'profile', label: 'Profile', icon: User }
@@ -254,8 +261,14 @@ export function MainApp() {
         return <Achievements />;
       case 'ai-coach':
         return <AIHealthCoach user={user} todayStats={todayStats} />;
+      case 'family':
+        return <FamilyDashboard />;
       case 'social':
         return <SocialCommunity user={user} />;
+      case 'provider-portal':
+        return <ProviderPortal />;
+      case 'medical-records':
+        return <MedicalRecords />;
       case 'medical':
         return <MedicalProfessionalTools user={user} stats={[todayStats, ...dailyStats]} />;
       case 'settings':
