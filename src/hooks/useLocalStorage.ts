@@ -1,10 +1,21 @@
 import { useState, useEffect } from 'react';
 
+// ISO 8601 date string pattern
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+
+// Reviver function to convert ISO date strings back to Date objects
+function dateReviver(key: string, value: any): any {
+  if (typeof value === 'string' && ISO_DATE_PATTERN.test(value)) {
+    return new Date(value);
+  }
+  return value;
+}
+
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      return item ? JSON.parse(item, dateReviver) : initialValue;
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
       return initialValue;
