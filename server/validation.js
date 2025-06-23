@@ -23,7 +23,7 @@ const signupSchema = z.object({
   fullName: fullNameSchema,
   email: emailSchema,
   password: passwordSchema,
-  confirmPassword: z.string(),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
   agreeToTerms: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and conditions'
   })
