@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3001;
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://sparkly-fox-b89f39.netlify.app'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://sparkly-fox-b89f39.netlify.app', 'https://www.completehealthtracker.com'],
   credentials: true
 }));
 
@@ -34,7 +34,7 @@ app.use(express.json({ limit: '10mb' }));
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.NODE_ENV === 'production'
-  ? 'https://sparkly-fox-b89f39.netlify.app/.netlify/functions/index/auth/google/callback'
+  ? 'https://www.completehealthtracker.com/.netlify/functions/index/auth/google/callback'
   : 'http://localhost:3001/auth/google/callback';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -307,7 +307,7 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('Error present:', !!error);
     
     const frontendUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://sparkly-fox-b89f39.netlify.app'
+      ? 'https://www.completehealthtracker.com'
       : 'http://localhost:5173';
     
     if (error) {
@@ -403,7 +403,7 @@ app.get('/auth/google/callback', async (req, res) => {
     }
     
     const frontendUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://sparkly-fox-b89f39.netlify.app'
+      ? 'https://www.completehealthtracker.com'
       : 'http://localhost:5173';
     
     res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Authentication failed')}`);

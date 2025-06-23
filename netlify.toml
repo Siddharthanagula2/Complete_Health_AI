@@ -1,0 +1,17 @@
+# Netlify Build & Redirect Configuration
+
+[build]
+  command = "npm run build"
+  functions = "server/"
+  publish = "dist/"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/index/api/:splat"
+  status = 200
+
+# Handle client-side routing for React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

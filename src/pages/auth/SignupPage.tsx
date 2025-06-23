@@ -147,7 +147,8 @@ export function SignupPage() {
 
   const handleGoogleSignup = () => {
     // Redirect to backend Google OAuth endpoint
-    window.location.href = 'http://localhost:3001/auth/google';
+    const baseUrl = window.location.origin;
+    window.location.href = `${baseUrl}/.netlify/functions/index/auth/google`;
   };
 
   return (
