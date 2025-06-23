@@ -1,7 +1,7 @@
-import { z } from 'zod';
+const { z } = require('zod');
 
 // Password validation schema
-export const passwordSchema = z
+const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
@@ -10,24 +10,24 @@ export const passwordSchema = z
   .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character');
 
 // Email validation schema
-export const emailSchema = z
+const emailSchema = z
   .string()
   .email('Please enter a valid email address')
   .min(1, 'Email is required');
 
 // Full name validation schema
-export const fullNameSchema = z
+const fullNameSchema = z
   .string()
   .min(2, 'Full name must be at least 2 characters')
   .max(50, 'Full name must be less than 50 characters')
   .regex(/^[a-zA-Z\s]+$/, 'Full name can only contain letters and spaces');
 
 // Signup validation schema
-export const signupSchema = z.object({
+const signupSchema = z.object({
   fullName: fullNameSchema,
   email: emailSchema,
   password: passwordSchema,
-  confirmPassword: z.string(),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
   agreeToTerms: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and conditions'
   })
@@ -35,6 +35,13 @@ export const signupSchema = z.object({
   message: 'Passwords do not match',
   path: ['confirmPassword']
 });
+
+module.exports = {
+  signupSchema,
+  passwordSchema,
+  emailSchema,
+  fullNameSchema
+};
 
 // Login validation schema
 export const loginSchema = z.object({
