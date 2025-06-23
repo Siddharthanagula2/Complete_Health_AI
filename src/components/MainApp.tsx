@@ -16,6 +16,7 @@ import { NutritionPlanner } from './NutritionPlanner';
 import { SleepTracker } from './SleepTracker';
 import { MoodTracker } from './MoodTracker';
 import { HealthInsights } from './HealthInsights';
+import { Achievements } from './Achievements';
 import { Settings } from './Settings';
 import { 
   Home, 
@@ -36,6 +37,7 @@ import {
   Moon,
   Heart,
   Lightbulb,
+  Trophy,
   Settings as SettingsIcon,
   LogOut
 } from 'lucide-react';
@@ -57,7 +59,7 @@ import {
 } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
 
-type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'settings';
+type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'settings';
 
 export function MainApp() {
   const location = useLocation();
@@ -215,7 +217,8 @@ export function MainApp() {
     { id: 'nutrition-planner', label: 'Meal Planner', icon: Calendar },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'insights', label: 'Insights', icon: Lightbulb },
+    { id: 'insights', label: 'AI Insights', icon: Lightbulb },
+    { id: 'achievements', label: 'Achievements', icon: Trophy },
     { id: 'ai-coach', label: 'AI Coach', icon: Bot },
     { id: 'social', label: 'Social', icon: Users },
     { id: 'medical', label: 'Medical', icon: Stethoscope },
@@ -246,7 +249,9 @@ export function MainApp() {
       case 'analytics':
         return <AdvancedAnalytics stats={[todayStats, ...dailyStats]} user={user} />;
       case 'insights':
-        return <HealthInsights user={user} stats={[todayStats, ...dailyStats]} />;
+        return <HealthInsights />;
+      case 'achievements':
+        return <Achievements />;
       case 'ai-coach':
         return <AIHealthCoach user={user} todayStats={todayStats} />;
       case 'social':

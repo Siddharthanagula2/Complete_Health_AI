@@ -1,652 +1,326 @@
-const { firestore } = require('../config/gcp');
-const { FieldValue } = require('@google-cloud/firestore');
-const crypto = require('crypto');
+const { Firestore } = require('@google-cloud/firestore');
+
+// Initialize Firestore
+let db;
+
+try {
+  // Parse the service account JSON from environment variable
+  const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+  
+  db = new Firestore({
+    projectId: serviceAccount.project_id,
+    credentials: serviceAccount
+  });
+  
+  console.log('✅ Firestore initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize Firestore:', error.message);
+  process.exit(1);
+}
 
 class FirestoreService {
-  constructor() {
-    this.db = firestore;
-    this.collections = {
-      users: 'users',
-      healthMetrics: 'health_metrics',
-      foodEntries: 'food_entries',
-      exerciseEntries: 'exercise_entries',
-      sleepEntries: 'sleep_entries',
-      moodEntries: 'mood_entries',
-      waterEntries: 'water_entries',
-      gpsWorkouts: 'gps_workouts',
-      medicalRecords: 'medical_records',
-      achievements: 'achievements',
-      socialChallenges: 'social_challenges',
-      aiInsights: 'ai_insights'
-    };
-  }
-
-  // ============================================================================
-  // USER MANAGEMENT
-  // ============================================================================
-
+  // User operations
   async createUser(userData) {
     try {
-      const userRef = this.db.collection(this.collections.users).doc();
-      const userId = userRef.id;
-      
-      const user = {
-        id: userId,
+      const userRef = db.collection('users').doc();
+      await userRef.set({
         ...userData,
-        email: userData.email.toLowerCase().trim(),
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastLogin: FieldValue.serverTimestamp(),
-        isEmailVerified: userData.isEmailVerified || false,
-        authProvider: userData.authProvider || 'email',
-        // HIPAA compliance: Add data classification
-        dataClassification: 'PHI', // Protected Health Information
-        encryptionStatus: 'encrypted_at_rest'
-      };
-
-      await userRef.set(user);
-      
-      // Return user with converted timestamps
-      const createdUser = await userRef.get();
-      const userData_result = createdUser.data();
-      
-      // Convert Firestore timestamps to JavaScript Dates
-      if (userData_result.createdAt && userData_result.createdAt.toDate) {
-        userData_result.createdAt = userData_result.createdAt.toDate();
-      }
-      if (userData_result.updatedAt && userData_result.updatedAt.toDate) {
-        userData_result.updatedAt = userData_result.updatedAt.toDate();
-      }
-      if (userData_result.lastLogin && userData_result.lastLogin.toDate) {
-        userData_result.lastLogin = userData_result.lastLogin.toDate();
-      }
-      
-      return { id: userId, ...userData_result };
+        createdAt: new Date(),
+        points: userData.points || 0,
+        level: userData.level || 1
+      });
+      return userRef.id;
     } catch (error) {
-      console.error('Error creating user in Firestore:', error);
+      console.error('Error creating user:', error);
       throw error;
     }
   }
 
-  async findUserByEmail(email) {
+  async getUserById(userId) {
     try {
-      const snapshot = await this.db
-        .collection(this.collections.users)
-        .where('email', '==', email.toLowerCase().trim())
-        .where('isDeleted', '!=', true) // Exclude soft-deleted users
-        .limit(1)
-        .get();
+      const userDoc = await db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return null;
+      }
+      return { id: userDoc.id, ...userDoc.data() };
+    } catch (error) {
+      console.error('Error getting user by ID:', error);
+      throw error;
+    }
+  }
 
+  async getUserByEmail(email) {
+    try {
+      const usersRef = db.collection('users');
+      const snapshot = await usersRef.where('email', '==', email).get();
+      
       if (snapshot.empty) {
         return null;
       }
-
-      const doc = snapshot.docs[0];
-      const userData = doc.data();
       
-      // Convert Firestore timestamps to JavaScript Dates
-      if (userData.createdAt && userData.createdAt.toDate) {
-        userData.createdAt = userData.createdAt.toDate();
-      }
-      if (userData.updatedAt && userData.updatedAt.toDate) {
-        userData.updatedAt = userData.updatedAt.toDate();
-      }
-      if (userData.lastLogin && userData.lastLogin.toDate) {
-        userData.lastLogin = userData.lastLogin.toDate();
-      }
-      
-      return { id: doc.id, ...userData };
+      const userDoc = snapshot.docs[0];
+      return { id: userDoc.id, ...userDoc.data() };
     } catch (error) {
-      console.error('Error finding user by email in Firestore:', error);
-      throw error;
-    }
-  }
-
-  async findUserById(userId) {
-    try {
-      const doc = await this.db
-        .collection(this.collections.users)
-        .doc(userId)
-        .get();
-
-      if (!doc.exists) {
-        return null;
-      }
-
-      const userData = doc.data();
-      
-      // Convert Firestore timestamps to JavaScript Dates
-      if (userData.createdAt && userData.createdAt.toDate) {
-        userData.createdAt = userData.createdAt.toDate();
-      }
-      if (userData.updatedAt && userData.updatedAt.toDate) {
-        userData.updatedAt = userData.updatedAt.toDate();
-      }
-      if (userData.lastLogin && userData.lastLogin.toDate) {
-        userData.lastLogin = userData.lastLogin.toDate();
-      }
-
-      return { id: doc.id, ...userData };
-    } catch (error) {
-      console.error('Error finding user by ID in Firestore:', error);
+      console.error('Error getting user by email:', error);
       throw error;
     }
   }
 
   async updateUser(userId, updates) {
     try {
-      const userRef = this.db.collection(this.collections.users).doc(userId);
-      
-      const updateData = {
+      await db.collection('users').doc(userId).update({
         ...updates,
-        updatedAt: FieldValue.serverTimestamp()
-      };
-
-      await userRef.update(updateData);
-      
-      const updatedDoc = await userRef.get();
-      const userData = updatedDoc.data();
-      
-      // Convert Firestore timestamps to JavaScript Dates
-      if (userData.createdAt && userData.createdAt.toDate) {
-        userData.createdAt = userData.createdAt.toDate();
-      }
-      if (userData.updatedAt && userData.updatedAt.toDate) {
-        userData.updatedAt = userData.updatedAt.toDate();
-      }
-      if (userData.lastLogin && userData.lastLogin.toDate) {
-        userData.lastLogin = userData.lastLogin.toDate();
-      }
-      
-      return { id: userId, ...userData };
+        updatedAt: new Date()
+      });
     } catch (error) {
-      console.error('Error updating user in Firestore:', error);
+      console.error('Error updating user:', error);
       throw error;
     }
   }
 
-  async deleteUser(userId) {
+  // Points and leveling system
+  async awardPoints(userId, points) {
     try {
-      // Soft delete for HIPAA compliance - don't actually delete PHI
-      await this.updateUser(userId, {
-        isDeleted: true,
-        deletedAt: FieldValue.serverTimestamp(),
-        // Anonymize PII while keeping health data for research
-        email: `deleted_${crypto.randomUUID()}@deleted.com`,
-        fullName: 'Deleted User'
+      const userRef = db.collection('users').doc(userId);
+      const userDoc = await userRef.get();
+      
+      if (!userDoc.exists) {
+        throw new Error('User not found');
+      }
+      
+      const userData = userDoc.data();
+      const currentPoints = userData.points || 0;
+      const currentLevel = userData.level || 1;
+      const newPoints = currentPoints + points;
+      
+      // Calculate new level (every 1000 points = 1 level)
+      const newLevel = Math.floor(newPoints / 1000) + 1;
+      
+      await userRef.update({
+        points: newPoints,
+        level: newLevel,
+        updatedAt: new Date()
       });
       
-      return true;
+      return { newPoints, newLevel, leveledUp: newLevel > currentLevel };
     } catch (error) {
-      console.error('Error deleting user in Firestore:', error);
+      console.error('Error awarding points:', error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // FOOD ENTRIES
-  // ============================================================================
-
-  async createFoodEntry(userId, foodData) {
+  // Food entries
+  async createFoodEntry(entryData) {
     try {
-      const entryRef = this.db.collection(this.collections.foodEntries).doc();
-      
-      const entry = {
-        id: entryRef.id,
-        userId,
-        ...foodData,
-        timestamp: FieldValue.serverTimestamp(),
-        dataClassification: 'PHI'
-      };
-
-      await entryRef.set(entry);
-      
-      const createdEntry = await entryRef.get();
-      const entryData = createdEntry.data();
-      
-      // Convert timestamp
-      if (entryData.timestamp && entryData.timestamp.toDate) {
-        entryData.timestamp = entryData.timestamp.toDate();
-      }
-      
-      return { id: entryRef.id, ...entryData };
+      const entryRef = db.collection('food_entries').doc();
+      await entryRef.set({
+        ...entryData,
+        createdAt: new Date()
+      });
+      return entryRef.id;
     } catch (error) {
-      console.error('Error creating food entry in Firestore:', error);
+      console.error('Error creating food entry:', error);
       throw error;
     }
   }
 
-  async getUserFoodEntries(userId, startDate = null, endDate = null) {
+  async getFoodEntries(userId, limit = 100) {
     try {
-      let query = this.db
-        .collection(this.collections.foodEntries)
+      const entriesRef = db.collection('food_entries');
+      const snapshot = await entriesRef
         .where('userId', '==', userId)
-        .orderBy('timestamp', 'desc');
+        .orderBy('timestamp', 'desc')
+        .limit(limit)
+        .get();
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting food entries:', error);
+      throw error;
+    }
+  }
 
-      if (startDate && endDate) {
-        query = query
-          .where('timestamp', '>=', startDate)
-          .where('timestamp', '<=', endDate);
-      }
-
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        // Convert timestamp
-        if (data.timestamp && data.timestamp.toDate) {
-          data.timestamp = data.timestamp.toDate();
-        }
-        return { id: doc.id, ...data };
+  // Exercise entries
+  async createExerciseEntry(entryData) {
+    try {
+      const entryRef = db.collection('exercise_entries').doc();
+      await entryRef.set({
+        ...entryData,
+        createdAt: new Date()
       });
+      return entryRef.id;
     } catch (error) {
-      console.error('Error getting user food entries from Firestore:', error);
+      console.error('Error creating exercise entry:', error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // EXERCISE ENTRIES
-  // ============================================================================
-
-  async createExerciseEntry(userId, exerciseData) {
+  async getExerciseEntries(userId, limit = 100) {
     try {
-      const entryRef = this.db.collection(this.collections.exerciseEntries).doc();
-      
-      const entry = {
-        id: entryRef.id,
-        userId,
-        ...exerciseData,
-        timestamp: FieldValue.serverTimestamp(),
-        dataClassification: 'PHI'
-      };
-
-      await entryRef.set(entry);
-      
-      const createdEntry = await entryRef.get();
-      const entryData = createdEntry.data();
-      
-      // Convert timestamp
-      if (entryData.timestamp && entryData.timestamp.toDate) {
-        entryData.timestamp = entryData.timestamp.toDate();
-      }
-      
-      return { id: entryRef.id, ...entryData };
-    } catch (error) {
-      console.error('Error creating exercise entry in Firestore:', error);
-      throw error;
-    }
-  }
-
-  async getUserExerciseEntries(userId, startDate = null, endDate = null) {
-    try {
-      let query = this.db
-        .collection(this.collections.exerciseEntries)
+      const entriesRef = db.collection('exercise_entries');
+      const snapshot = await entriesRef
         .where('userId', '==', userId)
-        .orderBy('timestamp', 'desc');
+        .orderBy('timestamp', 'desc')
+        .limit(limit)
+        .get();
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting exercise entries:', error);
+      throw error;
+    }
+  }
 
-      if (startDate && endDate) {
-        query = query
-          .where('timestamp', '>=', startDate)
-          .where('timestamp', '<=', endDate);
-      }
-
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        // Convert timestamp
-        if (data.timestamp && data.timestamp.toDate) {
-          data.timestamp = data.timestamp.toDate();
-        }
-        return { id: doc.id, ...data };
+  // Water entries
+  async createWaterEntry(entryData) {
+    try {
+      const entryRef = db.collection('water_entries').doc();
+      await entryRef.set({
+        ...entryData,
+        createdAt: new Date()
       });
+      return entryRef.id;
     } catch (error) {
-      console.error('Error getting user exercise entries from Firestore:', error);
+      console.error('Error creating water entry:', error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // WATER ENTRIES
-  // ============================================================================
-
-  async createWaterEntry(userId, waterData) {
+  async getWaterEntries(userId, limit = 100) {
     try {
-      const entryRef = this.db.collection(this.collections.waterEntries).doc();
-      
-      const entry = {
-        id: entryRef.id,
-        userId,
-        ...waterData,
-        timestamp: FieldValue.serverTimestamp(),
-        dataClassification: 'PHI'
-      };
-
-      await entryRef.set(entry);
-      
-      const createdEntry = await entryRef.get();
-      const entryData = createdEntry.data();
-      
-      // Convert timestamp
-      if (entryData.timestamp && entryData.timestamp.toDate) {
-        entryData.timestamp = entryData.timestamp.toDate();
-      }
-      
-      return { id: entryRef.id, ...entryData };
-    } catch (error) {
-      console.error('Error creating water entry in Firestore:', error);
-      throw error;
-    }
-  }
-
-  async getUserWaterEntries(userId, startDate = null, endDate = null) {
-    try {
-      let query = this.db
-        .collection(this.collections.waterEntries)
+      const entriesRef = db.collection('water_entries');
+      const snapshot = await entriesRef
         .where('userId', '==', userId)
-        .orderBy('timestamp', 'desc');
+        .orderBy('timestamp', 'desc')
+        .limit(limit)
+        .get();
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting water entries:', error);
+      throw error;
+    }
+  }
 
-      if (startDate && endDate) {
-        query = query
-          .where('timestamp', '>=', startDate)
-          .where('timestamp', '<=', endDate);
-      }
-
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        // Convert timestamp
-        if (data.timestamp && data.timestamp.toDate) {
-          data.timestamp = data.timestamp.toDate();
-        }
-        return { id: doc.id, ...data };
+  // Sleep entries
+  async createSleepEntry(entryData) {
+    try {
+      const entryRef = db.collection('sleep_entries').doc();
+      await entryRef.set({
+        ...entryData,
+        createdAt: new Date()
       });
+      return entryRef.id;
     } catch (error) {
-      console.error('Error getting user water entries from Firestore:', error);
+      console.error('Error creating sleep entry:', error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // SLEEP ENTRIES
-  // ============================================================================
-
-  async createSleepEntry(userId, sleepData) {
+  async getSleepEntries(userId, limit = 100) {
     try {
-      const entryRef = this.db.collection(this.collections.sleepEntries).doc();
-      
-      const entry = {
-        id: entryRef.id,
-        userId,
-        ...sleepData,
-        timestamp: FieldValue.serverTimestamp(),
-        dataClassification: 'PHI'
-      };
-
-      await entryRef.set(entry);
-      
-      const createdEntry = await entryRef.get();
-      const entryData = createdEntry.data();
-      
-      // Convert timestamp
-      if (entryData.timestamp && entryData.timestamp.toDate) {
-        entryData.timestamp = entryData.timestamp.toDate();
-      }
-      
-      return { id: entryRef.id, ...entryData };
-    } catch (error) {
-      console.error('Error creating sleep entry in Firestore:', error);
-      throw error;
-    }
-  }
-
-  async getUserSleepEntries(userId, startDate = null, endDate = null) {
-    try {
-      let query = this.db
-        .collection(this.collections.sleepEntries)
+      const entriesRef = db.collection('sleep_entries');
+      const snapshot = await entriesRef
         .where('userId', '==', userId)
-        .orderBy('timestamp', 'desc');
+        .orderBy('date', 'desc')
+        .limit(limit)
+        .get();
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting sleep entries:', error);
+      throw error;
+    }
+  }
 
-      if (startDate && endDate) {
-        query = query
-          .where('timestamp', '>=', startDate)
-          .where('timestamp', '<=', endDate);
-      }
-
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        // Convert timestamp
-        if (data.timestamp && data.timestamp.toDate) {
-          data.timestamp = data.timestamp.toDate();
-        }
-        return { id: doc.id, ...data };
+  // Mood entries
+  async createMoodEntry(entryData) {
+    try {
+      const entryRef = db.collection('mood_entries').doc();
+      await entryRef.set({
+        ...entryData,
+        createdAt: new Date()
       });
+      return entryRef.id;
     } catch (error) {
-      console.error('Error getting user sleep entries from Firestore:', error);
+      console.error('Error creating mood entry:', error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // MOOD ENTRIES
-  // ============================================================================
-
-  async createMoodEntry(userId, moodData) {
+  async getMoodEntries(userId, limit = 100) {
     try {
-      const entryRef = this.db.collection(this.collections.moodEntries).doc();
-      
-      const entry = {
-        id: entryRef.id,
-        userId,
-        ...moodData,
-        timestamp: FieldValue.serverTimestamp(),
-        dataClassification: 'PHI'
-      };
-
-      await entryRef.set(entry);
-      
-      const createdEntry = await entryRef.get();
-      const entryData = createdEntry.data();
-      
-      // Convert timestamp
-      if (entryData.timestamp && entryData.timestamp.toDate) {
-        entryData.timestamp = entryData.timestamp.toDate();
-      }
-      
-      return { id: entryRef.id, ...entryData };
-    } catch (error) {
-      console.error('Error creating mood entry in Firestore:', error);
-      throw error;
-    }
-  }
-
-  async getUserMoodEntries(userId, startDate = null, endDate = null) {
-    try {
-      let query = this.db
-        .collection(this.collections.moodEntries)
+      const entriesRef = db.collection('mood_entries');
+      const snapshot = await entriesRef
         .where('userId', '==', userId)
-        .orderBy('timestamp', 'desc');
-
-      if (startDate && endDate) {
-        query = query
-          .where('timestamp', '>=', startDate)
-          .where('timestamp', '<=', endDate);
-      }
-
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        // Convert timestamp
-        if (data.timestamp && data.timestamp.toDate) {
-          data.timestamp = data.timestamp.toDate();
-        }
-        return { id: doc.id, ...data };
-      });
+        .orderBy('timestamp', 'desc')
+        .limit(limit)
+        .get();
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
     } catch (error) {
-      console.error('Error getting user mood entries from Firestore:', error);
+      console.error('Error getting mood entries:', error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // ANALYTICS & AGGREGATION
-  // ============================================================================
-
-  async getAggregatedUserData(userId, timeframe = '30d') {
+  // Analytics queries for AI insights
+  async getRecentHealthData(userId, days = 7) {
     try {
-      const endDate = new Date();
-      const startDate = new Date();
-      
-      // Calculate start date based on timeframe
-      switch (timeframe) {
-        case '7d':
-          startDate.setDate(endDate.getDate() - 7);
-          break;
-        case '30d':
-          startDate.setDate(endDate.getDate() - 30);
-          break;
-        case '90d':
-          startDate.setDate(endDate.getDate() - 90);
-          break;
-        default:
-          startDate.setDate(endDate.getDate() - 30);
-      }
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
 
-      // Get all health data for the timeframe
       const [foodEntries, exerciseEntries, waterEntries, sleepEntries, moodEntries] = await Promise.all([
-        this.getUserFoodEntries(userId, startDate, endDate),
-        this.getUserExerciseEntries(userId, startDate, endDate),
-        this.getUserWaterEntries(userId, startDate, endDate),
-        this.getUserSleepEntries(userId, startDate, endDate),
-        this.getUserMoodEntries(userId, startDate, endDate)
+        this.getEntriesSince('food_entries', userId, cutoffDate),
+        this.getEntriesSince('exercise_entries', userId, cutoffDate),
+        this.getEntriesSince('water_entries', userId, cutoffDate),
+        this.getEntriesSince('sleep_entries', userId, cutoffDate, 'date'),
+        this.getEntriesSince('mood_entries', userId, cutoffDate)
       ]);
 
       return {
-        timeframe,
-        startDate,
-        endDate,
-        summary: {
-          totalFoodEntries: foodEntries.length,
-          totalExerciseEntries: exerciseEntries.length,
-          totalWaterEntries: waterEntries.length,
-          totalSleepEntries: sleepEntries.length,
-          totalMoodEntries: moodEntries.length,
-          avgCaloriesPerDay: this.calculateAvgCaloriesPerDay(foodEntries),
-          avgExerciseMinutesPerDay: this.calculateAvgExercisePerDay(exerciseEntries),
-          avgWaterIntakePerDay: this.calculateAvgWaterPerDay(waterEntries),
-          avgSleepHoursPerDay: this.calculateAvgSleepPerDay(sleepEntries),
-          avgMoodRating: this.calculateAvgMoodRating(moodEntries)
-        },
-        data: {
-          foodEntries,
-          exerciseEntries,
-          waterEntries,
-          sleepEntries,
-          moodEntries
-        }
+        food: foodEntries,
+        exercise: exerciseEntries,
+        water: waterEntries,
+        sleep: sleepEntries,
+        mood: moodEntries
       };
     } catch (error) {
-      console.error('Error getting aggregated user data from Firestore:', error);
+      console.error('Error getting recent health data:', error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // HELPER METHODS FOR ANALYTICS
-  // ============================================================================
-
-  calculateAvgCaloriesPerDay(foodEntries) {
-    if (!foodEntries.length) return 0;
-    const totalCalories = foodEntries.reduce((sum, entry) => sum + (entry.calories * (entry.quantity || 1)), 0);
-    const uniqueDays = new Set(foodEntries.map(entry => 
-      entry.timestamp.toDateString()
-    )).size;
-    return Math.round(totalCalories / Math.max(uniqueDays, 1));
-  }
-
-  calculateAvgExercisePerDay(exerciseEntries) {
-    if (!exerciseEntries.length) return 0;
-    const totalMinutes = exerciseEntries.reduce((sum, entry) => sum + entry.duration, 0);
-    const uniqueDays = new Set(exerciseEntries.map(entry => 
-      entry.timestamp.toDateString()
-    )).size;
-    return Math.round(totalMinutes / Math.max(uniqueDays, 1));
-  }
-
-  calculateAvgWaterPerDay(waterEntries) {
-    if (!waterEntries.length) return 0;
-    const totalAmount = waterEntries.reduce((sum, entry) => sum + entry.amount, 0);
-    const uniqueDays = new Set(waterEntries.map(entry => 
-      entry.timestamp.toDateString()
-    )).size;
-    return Math.round(totalAmount / Math.max(uniqueDays, 1));
-  }
-
-  calculateAvgSleepPerDay(sleepEntries) {
-    if (!sleepEntries.length) return 0;
-    const totalHours = sleepEntries.reduce((sum, entry) => sum + entry.duration, 0);
-    return Math.round((totalHours / sleepEntries.length) * 10) / 10;
-  }
-
-  calculateAvgMoodRating(moodEntries) {
-    if (!moodEntries.length) return 0;
-    const totalRating = moodEntries.reduce((sum, entry) => sum + entry.rating, 0);
-    return Math.round((totalRating / moodEntries.length) * 10) / 10;
-  }
-
-  // ============================================================================
-  // BATCH OPERATIONS FOR ANALYTICS EXPORT
-  // ============================================================================
-
-  async getAnonymizedDataForExport(startDate, endDate) {
+  async getEntriesSince(collection, userId, sinceDate, dateField = 'timestamp') {
     try {
-      console.log(`📊 Exporting anonymized data from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+      const entriesRef = db.collection(collection);
+      const snapshot = await entriesRef
+        .where('userId', '==', userId)
+        .where(dateField, '>=', sinceDate)
+        .orderBy(dateField, 'desc')
+        .get();
       
-      // Get all collections data within date range
-      const collections = [
-        'food_entries',
-        'exercise_entries',
-        'water_entries', 
-        'sleep_entries',
-        'mood_entries'
-      ];
-
-      const exportData = {};
-
-      for (const collectionName of collections) {
-        const snapshot = await this.db
-          .collection(collectionName)
-          .where('timestamp', '>=', startDate)
-          .where('timestamp', '<=', endDate)
-          .get();
-
-        // Anonymize the data - remove PII but keep health metrics
-        exportData[collectionName] = snapshot.docs.map(doc => {
-          const data = doc.data();
-          
-          // Convert Firestore timestamps to ISO strings
-          const processedData = { ...data };
-          if (processedData.timestamp && processedData.timestamp.toDate) {
-            processedData.timestamp = processedData.timestamp.toDate().toISOString();
-          }
-          
-          return {
-            // Generate anonymous user ID hash
-            anonymousUserId: crypto.createHash('sha256').update(data.userId).digest('hex'),
-            // Keep all health data but remove identifying information
-            ...Object.fromEntries(
-              Object.entries(processedData).filter(([key]) => 
-                !['userId', 'email', 'fullName', 'profilePicture'].includes(key)
-              )
-            ),
-            exportedAt: new Date().toISOString()
-          };
-        });
-      }
-
-      return exportData;
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
     } catch (error) {
-      console.error('Error getting anonymized data for export from Firestore:', error);
+      console.error(`Error getting ${collection} since ${sinceDate}:`, error);
       throw error;
     }
   }

@@ -12,9 +12,11 @@ import {
   Trash2,
   HelpCircle,
   Mail,
-  Smartphone
+  Smartphone,
+  Wifi
 } from 'lucide-react';
 import { User } from '../types';
+import { Integrations } from './Integrations';
 
 interface SettingsProps {
   user: User;
@@ -22,7 +24,7 @@ interface SettingsProps {
 }
 
 export function Settings({ user, onUpdateUser }: SettingsProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'privacy' | 'data'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'privacy' | 'data' | 'integrations'>('general');
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState({
     mealReminders: true,
@@ -291,7 +293,8 @@ export function Settings({ user, onUpdateUser }: SettingsProps) {
               { id: 'general', label: 'General', icon: SettingsIcon },
               { id: 'notifications', label: 'Notifications', icon: Bell },
               { id: 'privacy', label: 'Privacy', icon: Shield },
-              { id: 'data', label: 'Data', icon: Download }
+              { id: 'data', label: 'Data', icon: Download },
+              { id: 'integrations', label: 'Integrations', icon: Wifi }
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -305,7 +308,7 @@ export function Settings({ user, onUpdateUser }: SettingsProps) {
                   }`}
                 >
                   <Icon size={16} />
-                  <span className="text-sm font-medium">{tab.label}</span>
+                  <span className="text-sm font-medium hidden sm:inline">{tab.label}</span>
                 </button>
               );
             })}
@@ -320,6 +323,7 @@ export function Settings({ user, onUpdateUser }: SettingsProps) {
           {activeTab === 'notifications' && renderNotificationSettings()}
           {activeTab === 'privacy' && renderPrivacySettings()}
           {activeTab === 'data' && renderDataSettings()}
+          {activeTab === 'integrations' && <Integrations />}
         </CardContent>
       </Card>
 
