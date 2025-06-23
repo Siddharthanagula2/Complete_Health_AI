@@ -9,7 +9,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Proxy API requests to the backend server
+      // Proxy API requests to the backend server during development
       '/.netlify/functions/index': {
         target: 'http://localhost:3001',
         changeOrigin: true,

@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { AuthResponse, LoginCredentials, SignupData, PasswordResetRequest, PasswordReset } from '../types/auth';
 
-// API base URL - in production, this would come from environment variables
-const API_BASE_URL = '/.netlify/functions/index/api/auth';
+// Dynamic API base URL - uses relative path for production (Netlify functions) and localhost for development
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? '/.netlify/functions/index/api/auth'
+  : 'http://localhost:3001/api/auth';
 
 // Create axios instance with default config
 const authAPI = axios.create({
