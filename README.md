@@ -33,23 +33,23 @@ Create `server/.env` file with your service account JSON:
 
 ```bash
 # Google OAuth (existing)
-GOOGLE_CLIENT_ID=24548426193-u0g18cp7js0fimlrhpr8dg4qc88rs0hi.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=xxxxxxxxxxxx
+GOOGLE_CLIENT_SECRET=xxxxxxxxxx
 
 # Google Cloud Platform Service Account JSON (REQUIRED)
 # Copy the entire content of your service account JSON file as a single line string
-GOOGLE_APPLICATION_CREDENTIALS_JSON={"type":"service_account","project_id":"fleet-goal-463720-m4","private_key_id":"dec7b0f1c1ac7f7f4355475bec2d7419b7e30c6c","private_key":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC41dNswRX7e8Ec\n35G5P6beRNXV0ejq94CQQ+sz74/TViCFJu06BmYNEBDfZSopPWt8CSWkrZFoiIpz\ngj04CvO867XYMZvdREALXLTQUZQvkYKHPfvf+EqDzBZInoBJLQDV1vTmRp2vLPKc\n9rMmo4Y6qJDJBcJnGzkCaMO0CufR3PGdM8sBssEECw9V/zb+ahlGVmyU9ab0Y017\nhxuSC1kAy54FWPubuZvcXv/YVcCCW+QqZCVolH3lnFE+5PsM9LeW/1cU1MbimMFs\nGd29zuSFhn1pTwpkApH18JkUY8wIy8c8qYZBVjh8l4KRQpCDpHnKhMQkLrJXVE02\nCFZ1WhPFAgMBAAECggEAB41yyHiLtoBw77lk7qeR4Nz5yqhh0F2q161zlv/Jcs6L\n1DtqD+gC07LRD0fGqFoibumMXuvAS5l7F5gxRzDcLJKKSVpRlTUWOg1tZ/u4k3vQ\nuq6TzavxsFJh1x3+5CT3tt7D/mrRQ6V31MxLarjdob6RV/cPx/9eERUJAu2h8yD2\nllMYqB9qIXSsAxGMBwlqguRymVn6fxzOyDvSTCxhHwpPnR6To+kIqACdTDZgT+H9\nghcB4OOd99fAnRgkMOyXumLkchvUdFwMUBIrcMDvp8HmLq220ZSMwSL4U7E4JVYa\nBTbvi0PDOFynp3u3X1fRMKZSMM/tD1bLTqb37p2iEQKBgQDaWvhZMy0VBUZefBWG\nr96U3WlaZZUUh90WQBR54rV1uXCFZCHInf/1q4/kNfuhDI3yIPnQBPQHu0ilwrQg\nvjZIuzH9DkqLsMAnpGCqe8+fhXOR1p1ub4MSk6+Ke2LBs3Tj7beR4FmASYr+DDRr\nYUHj5/XIF9F3rpBxunxaU/DSnQKBgQDYs3WPWC9cjA+Vt4Lkr6YIBJJqvKcvYs+p\n5a/lm3aI6KKMzmVUJ7Hjzyi/4JkSRYv3Drql2o9QxYIJ6WLord1fdbsgtI7clURc\nUZ/MhtbIgSnNagleJuZiuZvNLKs1n8HickqpzalcMbj0WvnkaMY+FQERB1pwu385\nP+MJi1iJSQKBgClIv+HlmiV6TNa6cTt47wWIY03zHN+33GZDkVuGMLbka9DcoMKU\nlPt3B4qnZj8J56Ca+YCKHzWDBHZKvNHgBNV1hzsIQ7HrpjkYjCpPpG7NxY8SW8uw\ni8CsaakuMPrcmkIqBOYw29s0jHICDrsqtVGI3uCJGFKfj7HhB3fwnPzFAoGBANbt\nv5bqByeKf1amSbvZ/xoKttIIxOU54vAGsNxRwlJuMfLoLxY1vLlPWYJeGFRICFeF\nE1i2mtio3J5KDeDruRoaIfyBOQTNQ50xFAZ+Yn9BpJ1pI1tvx6d5om7wc+texaV8\naFNceTLI2kH6DcoepSkkGgeyvF/9h2TX2a44uBqJAoGANJdb/JJkutTTK8punXsX\nFZLV6qi+dSR52DbrLksiVkml72NWCIHEyDhCKHvyQeaqMnqxTruB199aTGKMsuN+\ndxxN8LB5LknRuJf5MHdHlzCnBbzWSqJj04Ur80FB6UsPujsoqubivpeTAS5wmKS2\nLPMEnftIfXVYsufhJfZdOaM=\n-----END PRIVATE KEY-----\n","client_email":"cht-903@fleet-goal-463720-m4.iam.gserviceaccount.com","client_id":"118181433245967521687","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"https://www.googleapis.com/robot/v1/metadata/x509/cht-903%40fleet-goal-463720-m4.iam.gserviceaccount.com","universe_domain":"googleapis.com"}
+GOOGLE_APPLICATION_CREDENTIALS_JSON={xxxxxxx}
 
 # Analytics Pipeline
-GCS_ANALYTICS_BUCKET=cht-analytics-data-lake
-BIGQUERY_DATASET_ID=cht_analytics
+GCS_ANALYTICS_BUCKET=xxxxxxxx
+BIGQUERY_DATASET_ID=xxxxx
 
 # Security
 JWT_SECRET=your-secure-jwt-secret-here
 
 # Server
-PORT=3001
-NODE_ENV=development
+PORT=xxxx
+NODE_ENV=xxxxxxxxx
 ```
 
 ### 3. Install Dependencies & Setup
