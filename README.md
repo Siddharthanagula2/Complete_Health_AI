@@ -1,4 +1,4 @@
-# Complete Health Tracker - Google Cloud Platform Integration
+# Complete Health Tracker
 
 A comprehensive health and wellness tracking application with AI-powered insights, now powered by Google Cloud Platform for enterprise-scale data management and HIPAA compliance.
 
