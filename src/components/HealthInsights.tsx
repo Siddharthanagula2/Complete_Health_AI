@@ -91,7 +91,7 @@ export function HealthInsights() {
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
+  const getImpactBadge = (impact: string) => {
     const colors = {
       high: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
       medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
@@ -99,8 +99,8 @@ export function HealthInsights() {
     };
 
     return (
-      <span className={`text-xs px-2 py-1 rounded-full ${colors[priority as keyof typeof colors] || colors.low}`}>
-        {priority} priority
+      <span className={`text-xs px-2 py-1 rounded-full ${colors[impact as keyof typeof colors] || colors.low}`}>
+        {impact} impact
       </span>
     );
   };
@@ -271,7 +271,7 @@ export function HealthInsights() {
                           <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
                             {insight.category}
                           </span>
-                          {getPriorityBadge(insight.priority)}
+                          {getImpactBadge(insight.impact)}
                         </div>
                       </div>
                       <div className="text-xs text-gray-500 flex items-center space-x-1">
