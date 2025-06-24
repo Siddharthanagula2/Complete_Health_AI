@@ -1,11 +1,9 @@
-# Netlify Build & Redirect Configuration
-
 [build]
-  command = "npm install && npm run build"
+  command = "npm run build"
   functions = "server/"
   publish = "dist/"
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/index/api/:splat"
+  to = "/.netlify/functions/index/:splat"
   status = 200

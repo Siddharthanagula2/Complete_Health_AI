@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, LoginCredentials, SignupData, PasswordResetRequest, PasswordReset } from '../types/auth';
+import { AuthResponse, LoginCredentials, SignupData, PasswordReset } from '../types/auth';
 
 // Use relative API path for all environments
 const API_BASE_URL = '/api/auth';
