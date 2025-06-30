@@ -22,6 +22,7 @@ import { ProviderPortal } from './ProviderPortal';
 import { MedicalRecords } from './MedicalRecords';
 import { Settings } from './Settings';
 import { Integrations } from './Integrations';
+import { LoadingScreen } from './LoadingScreen';
 import { 
   Home, 
   Utensils, 
@@ -86,7 +87,7 @@ export function MainApp() {
   
   const [activeTab, setActiveTab] = useState<ActiveTab>(getActiveTabFromPath(location.pathname));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   
   // User data - merge auth user with mock data
   const [user, setUser] = useLocalStorage<UserType>('health-user', {
@@ -123,10 +124,16 @@ export function MainApp() {
   // Load data from Supabase on initial load
   useEffect(() => {
     const loadUserData = async () => {
-      if (!authUser) return;
+      if (!authUser) {
+        setIsDataLoading(false);
+        return;
+      }
       
       setIsDataLoading(true);
       try {
+        // Simulate loading delay for demo purposes
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Load food entries
         const foodResult = await SupabaseHealthService.getFoodEntries();
         if (foodResult.success && foodResult.data.length > 0) {
@@ -169,7 +176,7 @@ export function MainApp() {
     };
     
     loadUserData();
-  }, [authUser]);
+  }, [authUser, setFoodEntries, setExerciseEntries, setWaterEntries, setSleepEntries, setMoodEntries]);
 
   // Calculate today's stats
   const today = new Date().toDateString();
@@ -438,14 +445,7 @@ export function MainApp() {
 
   // Show loading state while data is being loaded
   if (isDataLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your health data...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Loading your health data..." />;
   }
 
   return (

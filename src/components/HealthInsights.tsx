@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
+import { LoadingScreen } from './LoadingScreen';
 import { 
   Lightbulb, 
   TrendingUp, 
@@ -16,6 +17,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { HealthInsight } from '../types';
+import { mockAIInsights } from '../data/aiInsights';
 
 export function HealthInsights() {
   const [insights, setInsights] = useState<HealthInsight[]>([]);
@@ -32,28 +34,11 @@ export function HealthInsights() {
       setIsLoading(true);
       setError(null);
       
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch('http://localhost:3001/api/insights', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch insights: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setInsights(data.insights);
-      } else {
-        throw new Error(data.message || 'Failed to fetch insights');
-      }
+      // Simulate API call with a delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Use mock data for now
+      setInsights(mockAIInsights);
     } catch (error) {
       console.error('Error fetching insights:', error);
       setError(error instanceof Error ? error.message : 'Failed to load insights');
@@ -117,25 +102,7 @@ export function HealthInsights() {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <RefreshCw className="mx-auto text-gray-400 mb-4 animate-spin" size={48} />
-                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Analyzing Your Health Data
-                </h4>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Our AI is generating personalized insights based on your recent activity...
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <LoadingScreen message="Analyzing your health data..." fullScreen={false} />;
   }
 
   if (error) {
@@ -271,7 +238,7 @@ export function HealthInsights() {
                           <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
                             {insight.category}
                           </span>
-                          {getImpactBadge(insight.impact)}
+                          {getImpactBadge(insight.priority)}
                         </div>
                       </div>
                       <div className="text-xs text-gray-500 flex items-center space-x-1">
@@ -281,39 +248,14 @@ export function HealthInsights() {
                     </div>
                     
                     <p className="text-gray-700 dark:text-gray-300 mb-3">
-                      {insight.description}
+                      {insight.message}
                     </p>
-                    
-                    {insight.dataPoints && insight.dataPoints.length > 0 && (
-                      <div className="mb-3">
-                        <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Key Data:</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {insight.dataPoints.map((point, index) => (
-                            <span key={index} className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                              {point}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {insight.recommendation && (
-                      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3 mb-3">
-                        <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-1 flex items-center space-x-1">
-                          <Lightbulb size={14} />
-                          <span>Recommendation:</span>
-                        </h5>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                          {insight.recommendation}
-                        </p>
-                      </div>
-                    )}
                     
                     {insight.actionable && (
                       <div className="flex space-x-2">
                         <Button size="sm" variant="ghost">
                           <Zap size={14} className="mr-1" />
-                          Take Action
+                          {insight.action || 'Take Action'}
                         </Button>
                         <Button size="sm" variant="ghost">
                           Learn More

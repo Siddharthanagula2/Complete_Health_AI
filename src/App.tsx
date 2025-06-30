@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { LoadingScreen } from './components/LoadingScreen';
 
 // Lazy load components to reduce initial bundle size
 const LandingPage = React.lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
@@ -10,16 +11,6 @@ const SignupPage = React.lazy(() => import('./pages/auth/SignupPage').then(modul
 const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage').then(module => ({ default: module.ForgotPasswordPage })));
 const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPage').then(module => ({ default: module.ResetPasswordPage })));
 const MainApp = React.lazy(() => import('./components/MainApp').then(module => ({ default: module.MainApp })));
-
-// Loading component
-const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-      <p className="text-gray-600">Loading...</p>
-    </div>
-  </div>
-);
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -42,10 +33,10 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
           <div className="text-center p-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
-            <p className="text-gray-600 mb-6">We're sorry, but something unexpected happened.</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Something went wrong</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">We're sorry, but something unexpected happened.</p>
             <button
               onClick={() => window.location.reload()}
               className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg"
@@ -66,7 +57,7 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <Router>
-          <Suspense fallback={<LoadingSpinner />}>
+          <Suspense fallback={<LoadingScreen />}>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
