@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,8 +48,6 @@ export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [signupSuccess, setSignupSuccess] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState<string>('');
   
   // Initialize form with react-hook-form and zod validation
   const {
@@ -71,7 +69,6 @@ export function SignupForm() {
 
   // Get current password value for strength indicator
   const password = watch('password');
-  const email = watch('email');
 
   // Calculate password strength
   const getPasswordStrength = (password: string) => {
@@ -145,8 +142,7 @@ export function SignupForm() {
         options: {
           data: {
             full_name: data.fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/dashboard`
+          }
         }
       });
       
@@ -167,28 +163,28 @@ export function SignupForm() {
         return;
       }
       
-      // Create user profile
-      const profileResult = await createProfile(
-        authData.user.id,
-        data.fullName,
-        data.email
-      );
-      
-      if (!profileResult.success) {
-        console.error('Profile creation failed:', profileResult.error);
-        // We don't want to block the signup flow if profile creation fails
-        // The profile can be created later when the user logs in
-      }
-      
-      // Check if email confirmation is required
-      const requiresEmailConfirmation = !authData.user.identities?.[0]?.identity_data?.email_verified;
-      
-      if (requiresEmailConfirmation) {
-        setSignupSuccess(true);
-        setVerificationEmail(data.email);
-      } else {
-        // If no email confirmation required, redirect to dashboard
+      // Check if we have a session (email confirmation is disabled)
+      if (authData.session) {
+        // Create user profile
+        const profileResult = await createProfile(
+          authData.user.id,
+          data.fullName,
+          data.email
+        );
+        
+        if (!profileResult.success) {
+          console.error('Profile creation failed:', profileResult.error);
+          // We don't want to block the signup flow if profile creation fails
+          // The profile can be created later when the user logs in
+        }
+        
+        // Redirect to dashboard immediately since email confirmation is disabled
         navigate('/dashboard', { replace: true });
+        return;
+      } else {
+        // This should not happen if email confirmation is disabled
+        // But just in case, we'll handle it
+        setServerError('Account created but session not established. Please try logging in.');
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -197,67 +193,6 @@ export function SignupForm() {
       setIsLoading(false);
     }
   };
-
-  const handleResendConfirmation = async () => {
-    if (!email) return;
-    
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-      
-      if (error) {
-        setServerError(error.message);
-      } else {
-        setServerError('Confirmation email sent again! Please check your inbox.');
-      }
-    } catch (error) {
-      setServerError('Failed to resend confirmation email');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Show success page if signup was successful but needs email confirmation
-  if (signupSuccess) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
-        <div className="flex items-center justify-center mb-6">
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-            <CheckCircle className="text-green-500" size={32} />
-          </div>
-        </div>
-        
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          Check Your Email
-        </h1>
-        
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          We've sent a confirmation link to <strong>{verificationEmail}</strong>. 
-          Please check your email and click the link to activate your account.
-        </p>
-        
-        <div className="space-y-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Didn't receive the email? Check your spam folder or try again.
-          </p>
-          
-          <button
-            onClick={handleResendConfirmation}
-            disabled={isLoading}
-            className="text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Sending...' : 'Resend confirmation email'}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
