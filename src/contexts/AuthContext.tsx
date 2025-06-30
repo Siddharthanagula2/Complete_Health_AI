@@ -16,6 +16,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Initialize auth state
     const initializeAuth = async () => {
       try {
+        setIsLoading(true);
         const currentUser = await SupabaseAuthService.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
@@ -26,16 +27,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     initializeAuth();
-
-    // Listen to auth state changes
-    const { data: { subscription } } = SupabaseAuthService.onAuthStateChange((user) => {
-      setUser(user);
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
