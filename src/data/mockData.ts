@@ -133,7 +133,7 @@ export const mockFoodEntries: FoodEntry[] = [
     serving: '1/2 cup dry',
     quantity: 1,
     meal: 'breakfast',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(8, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(8, 0, 0, 0); return d; })()
   },
   {
     id: '8',
@@ -148,7 +148,7 @@ export const mockFoodEntries: FoodEntry[] = [
     serving: '1 medium',
     quantity: 1,
     meal: 'breakfast',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(8, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(8, 0, 0, 0); return d; })()
   },
   {
     id: '9',
@@ -163,7 +163,7 @@ export const mockFoodEntries: FoodEntry[] = [
     serving: '1 sandwich',
     quantity: 1,
     meal: 'lunch',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(12, 30, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(12, 30, 0, 0); return d; })()
   },
   {
     id: '10',
@@ -178,7 +178,7 @@ export const mockFoodEntries: FoodEntry[] = [
     serving: '100g',
     quantity: 1.5,
     meal: 'dinner',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(19, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(19, 0, 0, 0); return d; })()
   }
 ];
 
@@ -203,7 +203,7 @@ export const mockExerciseEntries: ExerciseEntry[] = [
     duration: 45,
     calories: 220,
     intensity: 'high',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(18, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(18, 0, 0, 0); return d; })()
   },
   
   // Two days ago
@@ -214,7 +214,7 @@ export const mockExerciseEntries: ExerciseEntry[] = [
     duration: 60,
     calories: 180,
     intensity: 'low',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 2).setHours(19, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(19, 0, 0, 0); return d; })()
   },
   
   // Three days ago
@@ -225,7 +225,7 @@ export const mockExerciseEntries: ExerciseEntry[] = [
     duration: 40,
     calories: 350,
     intensity: 'moderate',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 3).setHours(17, 30, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 3); d.setHours(17, 30, 0, 0); return d; })()
   },
   
   // Four days ago
@@ -236,7 +236,7 @@ export const mockExerciseEntries: ExerciseEntry[] = [
     duration: 25,
     calories: 300,
     intensity: 'high',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 4).setHours(7, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 4); d.setHours(7, 0, 0, 0); return d; })()
   }
 ];
 
@@ -250,10 +250,10 @@ export const mockWaterEntries = [
   { id: '5', amount: 250, timestamp: new Date(new Date().setHours(18, 0, 0, 0)) },
   
   // Yesterday's entries
-  { id: '6', amount: 250, timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(7, 30, 0, 0)) },
-  { id: '7', amount: 500, timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(12, 0, 0, 0)) },
-  { id: '8', amount: 250, timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(16, 30, 0, 0)) },
-  { id: '9', amount: 250, timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(19, 45, 0, 0)) }
+  { id: '6', amount: 250, timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(7, 30, 0, 0); return d; })() },
+  { id: '7', amount: 500, timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(12, 0, 0, 0); return d; })() },
+  { id: '8', amount: 250, timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(16, 30, 0, 0); return d; })() },
+  { id: '9', amount: 250, timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(19, 45, 0, 0); return d; })() }
 ];
 
 // Generate realistic sleep entries
@@ -272,7 +272,7 @@ export const mockSleepEntries = [
   // Two nights ago
   {
     id: '2',
-    date: new Date(new Date().setDate(new Date().getDate() - 1).setHours(0, 0, 0, 0)),
+    date: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(0, 0, 0, 0); return d; })(),
     bedtime: '23:00',
     wakeTime: '07:00',
     duration: 8,
@@ -283,7 +283,7 @@ export const mockSleepEntries = [
   // Three nights ago
   {
     id: '3',
-    date: new Date(new Date().setDate(new Date().getDate() - 2).setHours(0, 0, 0, 0)),
+    date: (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(0, 0, 0, 0); return d; })(),
     bedtime: '22:45',
     wakeTime: '06:45',
     duration: 8,
@@ -294,7 +294,7 @@ export const mockSleepEntries = [
   // Four nights ago
   {
     id: '4',
-    date: new Date(new Date().setDate(new Date().getDate() - 3).setHours(0, 0, 0, 0)),
+    date: (() => { const d = new Date(); d.setDate(d.getDate() - 3); d.setHours(0, 0, 0, 0); return d; })(),
     bedtime: '23:30',
     wakeTime: '06:30',
     duration: 7,
@@ -318,7 +318,7 @@ export const mockMoodEntries = [
     id: '2',
     rating: 7,
     factors: ['Social', 'Work accomplishment'],
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 1).setHours(19, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(19, 0, 0, 0); return d; })()
   },
   
   // Two days ago
@@ -327,7 +327,7 @@ export const mockMoodEntries = [
     rating: 5,
     factors: ['Stress', 'Poor sleep'],
     notes: 'Felt tired most of the day',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 2).setHours(20, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(20, 0, 0, 0); return d; })()
   },
   
   // Three days ago
@@ -336,7 +336,7 @@ export const mockMoodEntries = [
     rating: 9,
     factors: ['Exercise', 'Social', 'Good weather'],
     notes: 'Great day overall',
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 3).setHours(21, 0, 0, 0))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 3); d.setHours(21, 0, 0, 0); return d; })()
   }
 ];
 
@@ -525,7 +525,7 @@ export const mockHealthInsights = [
     actionable: true,
     recommendation: 'Continue your current protein intake pattern, focusing on lean sources throughout the day.',
     dataPoints: ['Avg. 1.8g/kg body weight', '25-30g per meal', '65% from complete sources'],
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 1))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d; })()
   },
   {
     id: '2',
@@ -537,7 +537,7 @@ export const mockHealthInsights = [
     actionable: true,
     recommendation: 'Set a reminder to drink 16oz of water at 2 PM and again at 4 PM.',
     dataPoints: ['Avg. 1.5 glasses between 2-5 PM', '3.2 glasses before 2 PM', '2.8 glasses after 5 PM'],
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 2))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 2); return d; })()
   },
   {
     id: '3',
@@ -549,7 +549,7 @@ export const mockHealthInsights = [
     actionable: true,
     recommendation: 'Consider implementing a deload week followed by a change in your training variables (sets, reps, or exercise selection).',
     dataPoints: ['2% strength increase (past 2 weeks)', '8% strength increase (previous 2 weeks)', 'Consistent workout frequency'],
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 3))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 3); return d; })()
   },
   {
     id: '4',
@@ -561,7 +561,7 @@ export const mockHealthInsights = [
     actionable: true,
     recommendation: 'Maintain this consistent sleep schedule, including on weekends, for optimal circadian rhythm benefits.',
     dataPoints: ['Avg. bedtime: 10:45 PM ±18 min', 'Avg. sleep duration: 7.8 hours', 'Improved sleep quality score'],
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 4))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 4); return d; })()
   },
   {
     id: '5',
@@ -573,7 +573,7 @@ export const mockHealthInsights = [
     actionable: true,
     recommendation: 'Increase consumption of vitamin D-rich foods (fatty fish, egg yolks, fortified foods) or consider a supplement after consulting your healthcare provider.',
     dataPoints: ['Avg. 120 IU daily (recommended: 600-800 IU)', 'Limited sun exposure reported', 'Low intake of vitamin D-rich foods'],
-    timestamp: new Date(new Date().setDate(new Date().getDate() - 5))
+    timestamp: (() => { const d = new Date(); d.setDate(d.getDate() - 5); return d; })()
   }
 ];
 
