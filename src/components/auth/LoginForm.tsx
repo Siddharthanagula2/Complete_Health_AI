@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -94,11 +94,7 @@ export function LoginForm() {
       // Sign in with Supabase
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
-        password: data.password,
-        options: {
-          // Set session persistence based on rememberMe
-          persistSession: data.rememberMe
-        }
+        password: data.password
       });
       
       if (error) {
