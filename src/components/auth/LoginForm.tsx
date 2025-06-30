@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/supabase';
+import { supabase } from '../../lib/supabase';
 
 // Define the validation schema
 const loginSchema = z.object({
@@ -18,8 +17,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
-  const router = useRouter();
-  const supabase = createClientComponentClient<Database>();
+  const navigate = useNavigate();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -68,8 +66,7 @@ export default function LoginForm() {
       
       if (authData.user) {
         // Successful login, redirect to dashboard
-        router.push('/dashboard');
-        router.refresh();
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Login error:', error);

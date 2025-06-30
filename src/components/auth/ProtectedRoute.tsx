@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/supabase';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -11,14 +10,12 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   useEffect(() => {
-    const supabase = createClientComponentClient<Database>();
-    
     const checkAuth = async () => {
       try {
         setIsLoading(true);
@@ -27,19 +24,19 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         
         if (error) {
           console.error('Auth check error:', error);
-          router.push(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+          navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
           return;
         }
         
         if (!data.session) {
-          router.push(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+          navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
           return;
         }
         
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Auth check error:', error);
-        router.push(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+        navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +48,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_OUT') {
-          router.push(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+          navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
         }
       }
     );
@@ -59,7 +56,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, pathname]);
+  }, [navigate, location.pathname]);
   
   if (isLoading) {
     return (

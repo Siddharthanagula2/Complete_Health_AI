@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/supabase';
+import { supabase } from '../../lib/supabase';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { SuccessMessage } from '@/components/ui/SuccessMessage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -28,9 +27,8 @@ const passwordResetSchema = z.object({
 type PasswordResetFormData = z.infer<typeof passwordResetSchema>;
 
 export default function PasswordResetForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const supabase = createClientComponentClient<Database>();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -98,7 +96,7 @@ export default function PasswordResetForm() {
     };
     
     checkToken();
-  }, [supabase.auth]);
+  }, []);
 
   // Calculate password strength
   const getPasswordStrength = (password: string) => {
@@ -137,7 +135,7 @@ export default function PasswordResetForm() {
       
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        router.push('/login');
+        navigate('/login');
       }, 3000);
     } catch (error) {
       console.error('Password reset error:', error);
