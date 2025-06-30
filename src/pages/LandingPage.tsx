@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Heart, 
@@ -8,7 +8,6 @@ import {
   Brain, 
   Trophy, 
   Shield, 
-  Star, 
   Check, 
   ArrowRight,
   Smartphone,
@@ -18,7 +17,6 @@ import {
   Zap,
   Users,
   Award,
-  ChevronDown,
   Play,
   Instagram,
   Facebook,

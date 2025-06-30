@@ -112,7 +112,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
+        options: {
+          persistSession: rememberMe
+        }
       });
       
       if (error) {

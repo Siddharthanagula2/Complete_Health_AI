@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -46,7 +46,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event, _session) => {
         if (event === 'SIGNED_OUT') {
           navigate(`/login?returnUrl=${encodeURIComponent(location.pathname)}`);
         }
