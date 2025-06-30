@@ -39,7 +39,8 @@ export const signupSchema = z.object({
 // Login validation schema
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, 'Password is required')
+  password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional()
 });
 
 // Password reset request schema
@@ -51,7 +52,7 @@ export const passwordResetRequestSchema = z.object({
 export const passwordResetSchema = z.object({
   token: z.string().min(1, 'Reset token is required'),
   newPassword: passwordSchema,
-  confirmPassword: z.string()
+  confirmPassword: z.string().min(1, 'Please confirm your password')
 }).refine(data => data.newPassword === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword']

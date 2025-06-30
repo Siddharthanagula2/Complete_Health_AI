@@ -60,10 +60,16 @@ import {
 } from '../types';
 import { 
   mockUser, 
+  mockFoodEntries,
+  mockExerciseEntries,
+  mockWaterEntries,
+  mockSleepEntries,
+  mockMoodEntries,
   mockDailyStats, 
   mockAchievements 
 } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
+import { SupabaseHealthService } from '../services/supabaseHealthService';
 
 type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'family' | 'provider-portal' | 'medical-records' | 'settings' | 'integrations';
 
@@ -80,6 +86,7 @@ export function MainApp() {
   
   const [activeTab, setActiveTab] = useState<ActiveTab>(getActiveTabFromPath(location.pathname));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   
   // User data - merge auth user with mock data
   const [user, setUser] = useLocalStorage<UserType>('health-user', {
@@ -87,14 +94,14 @@ export function MainApp() {
     name: authUser?.fullName || mockUser.name,
     email: authUser?.email || mockUser.email
   });
-  const [foodEntries, setFoodEntries] = useLocalStorage<FoodEntry[]>('health-food-entries', []);
-  const [waterEntries, setWaterEntries] = useLocalStorage<WaterEntry[]>('health-water-entries', []);
-  const [exerciseEntries, setExerciseEntries] = useLocalStorage<ExerciseEntry[]>('health-exercise-entries', []);
+  const [foodEntries, setFoodEntries] = useLocalStorage<FoodEntry[]>('health-food-entries', mockFoodEntries);
+  const [waterEntries, setWaterEntries] = useLocalStorage<WaterEntry[]>('health-water-entries', mockWaterEntries);
+  const [exerciseEntries, setExerciseEntries] = useLocalStorage<ExerciseEntry[]>('health-exercise-entries', mockExerciseEntries);
   const [gpsWorkouts, setGpsWorkouts] = useLocalStorage<GPSWorkout[]>('health-gps-workouts', []);
-  const [sleepEntries, setSleepEntries] = useLocalStorage<SleepEntry[]>('health-sleep-entries', []);
-  const [moodEntries, setMoodEntries] = useLocalStorage<MoodEntry[]>('health-mood-entries', []);
-  const [dailyStats] = useLocalStorage<DailyStats[]>('health-daily-stats', mockDailyStats);
-  const [achievements] = useLocalStorage<Achievement[]>('health-achievements', mockAchievements);
+  const [sleepEntries, setSleepEntries] = useLocalStorage<SleepEntry[]>('health-sleep-entries', mockSleepEntries);
+  const [moodEntries, setMoodEntries] = useLocalStorage<MoodEntry[]>('health-mood-entries', mockMoodEntries);
+  const [dailyStats, setDailyStats] = useLocalStorage<DailyStats[]>('health-daily-stats', mockDailyStats);
+  const [achievements, setAchievements] = useLocalStorage<Achievement[]>('health-achievements', mockAchievements);
 
   // Update active tab when URL changes
   useEffect(() => {
@@ -112,6 +119,57 @@ export function MainApp() {
       }));
     }
   }, [authUser, setUser]);
+
+  // Load data from Supabase on initial load
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!authUser) return;
+      
+      setIsDataLoading(true);
+      try {
+        // Load food entries
+        const foodResult = await SupabaseHealthService.getFoodEntries();
+        if (foodResult.success && foodResult.data.length > 0) {
+          const entries = foodResult.data.map(item => item.data_value);
+          setFoodEntries(entries);
+        }
+        
+        // Load exercise entries
+        const exerciseResult = await SupabaseHealthService.getExerciseEntries();
+        if (exerciseResult.success && exerciseResult.data.length > 0) {
+          const entries = exerciseResult.data.map(item => item.data_value);
+          setExerciseEntries(entries);
+        }
+        
+        // Load water entries
+        const waterResult = await SupabaseHealthService.getWaterEntries();
+        if (waterResult.success && waterResult.data.length > 0) {
+          const entries = waterResult.data.map(item => item.data_value);
+          setWaterEntries(entries);
+        }
+        
+        // Load sleep entries
+        const sleepResult = await SupabaseHealthService.getSleepEntries();
+        if (sleepResult.success && sleepResult.data.length > 0) {
+          const entries = sleepResult.data.map(item => item.data_value);
+          setSleepEntries(entries);
+        }
+        
+        // Load mood entries
+        const moodResult = await SupabaseHealthService.getMoodEntries();
+        if (moodResult.success && moodResult.data.length > 0) {
+          const entries = moodResult.data.map(item => item.data_value);
+          setMoodEntries(entries);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+    
+    loadUserData();
+  }, [authUser]);
 
   // Calculate today's stats
   const today = new Date().toDateString();
@@ -145,70 +203,124 @@ export function MainApp() {
     mood: todayMoodEntries.length > 0 ? todayMoodEntries[0].rating : 5
   };
 
-  const addFoodEntry = (entry: Omit<FoodEntry, 'id'>) => {
+  const addFoodEntry = async (entry: Omit<FoodEntry, 'id'>) => {
     const newEntry: FoodEntry = {
       ...entry,
       id: Date.now().toString(),
       timestamp: new Date(entry.timestamp)
     };
+    
+    // Save to local storage
     setFoodEntries(prev => [...prev, newEntry]);
+    
+    // Save to Supabase
+    try {
+      await SupabaseHealthService.saveFoodEntry(newEntry);
+    } catch (error) {
+      console.error('Error saving food entry:', error);
+    }
     
     // Award points for logging food
     setUser(prev => ({ ...prev, points: prev.points + 10 }));
   };
 
-  const addWaterEntry = (entry: Omit<WaterEntry, 'id'>) => {
+  const addWaterEntry = async (entry: Omit<WaterEntry, 'id'>) => {
     const newEntry: WaterEntry = {
       ...entry,
       id: Date.now().toString(),
       timestamp: new Date(entry.timestamp)
     };
+    
+    // Save to local storage
     setWaterEntries(prev => [...prev, newEntry]);
+    
+    // Save to Supabase
+    try {
+      await SupabaseHealthService.saveWaterEntry(newEntry);
+    } catch (error) {
+      console.error('Error saving water entry:', error);
+    }
     
     // Award points for hydration
     setUser(prev => ({ ...prev, points: prev.points + 5 }));
   };
 
-  const addExerciseEntry = (entry: Omit<ExerciseEntry, 'id'>) => {
+  const addExerciseEntry = async (entry: Omit<ExerciseEntry, 'id'>) => {
     const newEntry: ExerciseEntry = {
       ...entry,
       id: Date.now().toString(),
       timestamp: new Date(entry.timestamp)
     };
+    
+    // Save to local storage
     setExerciseEntries(prev => [...prev, newEntry]);
+    
+    // Save to Supabase
+    try {
+      await SupabaseHealthService.saveExerciseEntry(newEntry);
+    } catch (error) {
+      console.error('Error saving exercise entry:', error);
+    }
     
     // Award points for exercise
     setUser(prev => ({ ...prev, points: prev.points + Math.round(entry.duration / 2) }));
   };
 
-  const addGPSWorkout = (workout: Omit<GPSWorkout, 'id'>) => {
+  const addGPSWorkout = async (workout: Omit<GPSWorkout, 'id'>) => {
     const newWorkout: GPSWorkout = {
       ...workout,
       id: Date.now().toString()
     };
+    
+    // Save to local storage
     setGpsWorkouts(prev => [...prev, newWorkout]);
+    
+    // Save to Supabase
+    try {
+      await SupabaseHealthService.saveHealthData('gps_workout', newWorkout);
+    } catch (error) {
+      console.error('Error saving GPS workout:', error);
+    }
     
     // Award points for GPS workout
     setUser(prev => ({ ...prev, points: prev.points + Math.round(workout.duration / 2) + 50 }));
   };
 
-  const addSleepEntry = (entry: Omit<SleepEntry, 'id'>) => {
+  const addSleepEntry = async (entry: Omit<SleepEntry, 'id'>) => {
     const newEntry: SleepEntry = {
       ...entry,
       id: Date.now().toString()
     };
+    
+    // Save to local storage
     setSleepEntries(prev => [...prev, newEntry]);
+    
+    // Save to Supabase
+    try {
+      await SupabaseHealthService.saveSleepEntry(newEntry);
+    } catch (error) {
+      console.error('Error saving sleep entry:', error);
+    }
     
     // Award points for sleep tracking
     setUser(prev => ({ ...prev, points: prev.points + 15 }));
   };
 
-  const addMoodEntry = (entry: Omit<MoodEntry, 'id'>) => {
+  const addMoodEntry = async (entry: Omit<MoodEntry, 'id'>) => {
     const newEntry: MoodEntry = {
       ...entry,
       id: Date.now().toString()
     };
+    
+    // Save to local storage
     setMoodEntries(prev => [...prev, newEntry]);
+    
+    // Save to Supabase
+    try {
+      await SupabaseHealthService.saveMoodEntry(newEntry);
+    } catch (error) {
+      console.error('Error saving mood entry:', error);
+    }
     
     // Award points for mood tracking
     setUser(prev => ({ ...prev, points: prev.points + 5 }));
@@ -323,6 +435,18 @@ export function MainApp() {
       );
     }
   };
+
+  // Show loading state while data is being loaded
+  if (isDataLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your health data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
