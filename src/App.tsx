@@ -5,12 +5,12 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoadingScreen } from './components/LoadingScreen';
 
 // Lazy load components to reduce initial bundle size
-const LandingPage = React.lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
-const LoginPage = React.lazy(() => import('./pages/auth/LoginPage').then(module => ({ default: module.LoginPage })));
-const SignupPage = React.lazy(() => import('./pages/auth/SignupPage').then(module => ({ default: module.SignupPage })));
-const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage').then(module => ({ default: module.ForgotPasswordPage })));
-const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPage').then(module => ({ default: module.ResetPasswordPage })));
-const MainApp = React.lazy(() => import('./components/MainApp').then(module => ({ default: module.MainApp })));
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
+const SignupPage = React.lazy(() => import('./pages/auth/SignupPage'));
+const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPage'));
+const MainApp = React.lazy(() => import('./components/MainApp'));
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
