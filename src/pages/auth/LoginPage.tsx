@@ -10,7 +10,7 @@ import { loginSchema } from '../../utils/validation';
 import { LoginCredentials } from '../../types/auth';
 import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
-export function LoginPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, isAuthenticated } = useAuth();

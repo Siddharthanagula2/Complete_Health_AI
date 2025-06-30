@@ -26,7 +26,7 @@ import {
   Linkedin
 } from 'lucide-react';
 
-export function LandingPage() {
+export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAnnualPricing, setIsAnnualPricing] = useState(false);

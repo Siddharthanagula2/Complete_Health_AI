@@ -11,7 +11,7 @@ import { signupSchema } from '../../utils/validation';
 import { SignupData } from '../../types/auth';
 import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
-export function SignupPage() {
+export default function SignupPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signup, isLoading, isAuthenticated } = useAuth();

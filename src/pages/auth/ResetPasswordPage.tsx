@@ -8,7 +8,7 @@ import { LoadingScreen } from '../../components/LoadingScreen';
 import { passwordResetSchema } from '../../utils/validation';
 import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
-export function ResetPasswordPage() {
+export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   

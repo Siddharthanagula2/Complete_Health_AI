@@ -6,7 +6,7 @@ import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
 import { passwordResetRequestSchema } from '../../utils/validation';
 import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
-export function ForgotPasswordPage() {
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
