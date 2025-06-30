@@ -11,7 +11,6 @@ import {
   Brain,
   Heart,
   Activity,
-  Zap,
   RefreshCw,
   Calendar,
   BarChart3
@@ -254,7 +253,7 @@ export function HealthInsights() {
                     {insight.actionable && (
                       <div className="flex space-x-2">
                         <Button size="sm" variant="ghost">
-                          <Zap size={14} className="mr-1" />
+                          <Lightbulb size={14} className="mr-1" />
                           {insight.action || 'Take Action'}
                         </Button>
                         <Button size="sm" variant="ghost">
