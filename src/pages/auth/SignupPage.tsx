@@ -12,7 +12,7 @@ import { SignupData } from '../../types/auth';
 export function SignupPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signup, isLoading } = useAuth();
+  const { signup, isLoading, isAuthenticated } = useAuth();
   
   const [formData, setFormData] = useState<SignupData>({
     fullName: '',
@@ -25,6 +25,13 @@ export function SignupPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState('');
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   // Check for error in URL params (from OAuth callback)
   useEffect(() => {
@@ -121,8 +128,6 @@ export function SignupPage() {
     
     // Validate the entire form
     if (!validateForm()) {
-      // REQUIRED DEBUG LOGGING
-      console.log('ZOD VALIDATION ERRORS:', errors);
       return;
     }
     
@@ -135,8 +140,6 @@ export function SignupPage() {
         setSubmitError(response.message || 'Signup failed');
         if (response.errors) {
           setErrors(response.errors);
-          // REQUIRED DEBUG LOGGING for server errors
-          console.log('ZOD VALIDATION ERRORS:', response.errors);
         }
       }
     } catch (error) {
@@ -146,9 +149,8 @@ export function SignupPage() {
   };
 
   const handleGoogleSignup = () => {
-    // Redirect to backend Google OAuth endpoint
-    const baseUrl = window.location.origin;
-    window.location.href = `${baseUrl}/.netlify/functions/index/auth/google`;
+    // For demo purposes, simulate Google signup
+    setSubmitError('Google signup is not available in demo mode. Please use email/password signup.');
   };
 
   return (
@@ -181,6 +183,17 @@ export function SignupPage() {
                 </div>
               </div>
             )}
+
+            {/* Demo Notice */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="text-blue-500" size={20} />
+                <div>
+                  <p className="text-blue-700 dark:text-blue-400 text-sm font-medium">Demo Mode</p>
+                  <p className="text-blue-600 dark:text-blue-300 text-xs">Create an account with any valid information</p>
+                </div>
+              </div>
+            </div>
 
             {/* Full Name */}
             <InputField
@@ -265,7 +278,7 @@ export function SignupPage() {
                 </span>
               </label>
               
-              {/* REQUIRED: Dedicated error display for agreeToTerms */}
+              {/* Terms error display */}
               {touched.agreeToTerms && errors.agreeToTerms && (
                 <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
                   <AlertCircle size={14} />

@@ -81,7 +81,7 @@ export function MainApp() {
   const [activeTab, setActiveTab] = useState<ActiveTab>(getActiveTabFromPath(location.pathname));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // User data
+  // User data - merge auth user with mock data
   const [user, setUser] = useLocalStorage<UserType>('health-user', {
     ...mockUser,
     name: authUser?.fullName || mockUser.name,
@@ -101,6 +101,17 @@ export function MainApp() {
     const newTab = getActiveTabFromPath(location.pathname);
     setActiveTab(newTab);
   }, [location.pathname]);
+
+  // Update user data when auth user changes
+  useEffect(() => {
+    if (authUser) {
+      setUser(prev => ({
+        ...prev,
+        name: authUser.fullName,
+        email: authUser.email
+      }));
+    }
+  }, [authUser, setUser]);
 
   // Calculate today's stats
   const today = new Date().toDateString();

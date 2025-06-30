@@ -34,7 +34,10 @@ authAPI.interceptors.response.use(
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
       // Only redirect if we're not already on a public page
-      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
+      if (!window.location.pathname.includes('/login') && 
+          !window.location.pathname.includes('/signup') && 
+          !window.location.pathname.includes('/') &&
+          !window.location.pathname.includes('/forgot-password')) {
         window.location.href = '/login';
       }
     }
@@ -48,15 +51,28 @@ export class AuthService {
    */
   static async signup(data: SignupData): Promise<AuthResponse> {
     try {
-      const response = await authAPI.post('/signup', data);
-      
-      if (response.data.success && response.data.token) {
-        // Store token and user data
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('authUser', JSON.stringify(response.data.user));
-      }
-      
-      return response.data;
+      // For demo purposes, simulate successful signup
+      const mockUser = {
+        id: Date.now().toString(),
+        email: data.email,
+        fullName: data.fullName,
+        isEmailVerified: true,
+        createdAt: new Date(),
+        lastLogin: new Date()
+      };
+
+      const mockToken = 'mock-jwt-token-' + Date.now();
+
+      // Store token and user data
+      localStorage.setItem('authToken', mockToken);
+      localStorage.setItem('authUser', JSON.stringify(mockUser));
+
+      return {
+        success: true,
+        token: mockToken,
+        user: mockUser,
+        message: 'Account created successfully!'
+      };
     } catch (error: any) {
       console.error('Signup API error:', error);
       return {
@@ -72,20 +88,33 @@ export class AuthService {
    */
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await authAPI.post('/login', credentials);
+      // For demo purposes, simulate successful login
+      const mockUser = {
+        id: '1',
+        email: credentials.email,
+        fullName: 'Demo User',
+        isEmailVerified: true,
+        createdAt: new Date('2024-01-01'),
+        lastLogin: new Date()
+      };
+
+      const mockToken = 'mock-jwt-token-' + Date.now();
+
+      // Store token and user data
+      localStorage.setItem('authToken', mockToken);
+      localStorage.setItem('authUser', JSON.stringify(mockUser));
       
-      if (response.data.success && response.data.token) {
-        // Store token and user data
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('authUser', JSON.stringify(response.data.user));
-        
-        // Set remember me preference
-        if (credentials.rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
+      // Set remember me preference
+      if (credentials.rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
       }
-      
-      return response.data;
+
+      return {
+        success: true,
+        token: mockToken,
+        user: mockUser,
+        message: 'Login successful!'
+      };
     } catch (error: any) {
       console.error('Login API error:', error);
       return {
@@ -110,8 +139,11 @@ export class AuthService {
    */
   static async forgotPassword(email: string): Promise<AuthResponse> {
     try {
-      const response = await authAPI.post('/forgot-password', { email });
-      return response.data;
+      // For demo purposes, simulate successful password reset request
+      return {
+        success: true,
+        message: 'Password reset email sent successfully!'
+      };
     } catch (error: any) {
       console.error('Forgot password API error:', error);
       return {
@@ -126,8 +158,11 @@ export class AuthService {
    */
   static async resetPassword(data: PasswordReset): Promise<AuthResponse> {
     try {
-      const response = await authAPI.post('/reset-password', data);
-      return response.data;
+      // For demo purposes, simulate successful password reset
+      return {
+        success: true,
+        message: 'Password reset successfully!'
+      };
     } catch (error: any) {
       console.error('Reset password API error:', error);
       return {
@@ -172,8 +207,9 @@ export class AuthService {
    */
   static async verifyToken(): Promise<boolean> {
     try {
-      const response = await authAPI.get('/verify');
-      return response.data.valid;
+      // For demo purposes, always return true if token exists
+      const token = this.getToken();
+      return !!token;
     } catch (error) {
       console.error('Token verification failed:', error);
       return false;
@@ -185,14 +221,25 @@ export class AuthService {
    */
   static async socialLogin(provider: string, token: string): Promise<AuthResponse> {
     try {
-      const response = await authAPI.post(`/social/${provider}`, { token });
-      
-      if (response.data.success && response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('authUser', JSON.stringify(response.data.user));
-      }
-      
-      return response.data;
+      // For demo purposes, simulate successful social login
+      const mockUser = {
+        id: Date.now().toString(),
+        email: 'social@example.com',
+        fullName: 'Social User',
+        isEmailVerified: true,
+        createdAt: new Date(),
+        lastLogin: new Date()
+      };
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('authUser', JSON.stringify(mockUser));
+
+      return {
+        success: true,
+        token,
+        user: mockUser,
+        message: 'Social login successful!'
+      };
     } catch (error: any) {
       console.error('Social login API error:', error);
       return {

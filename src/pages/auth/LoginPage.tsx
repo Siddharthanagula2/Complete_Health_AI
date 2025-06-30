@@ -11,7 +11,7 @@ import { LoginCredentials } from '../../types/auth';
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated } = useAuth();
   
   const [formData, setFormData] = useState<LoginCredentials>({
     email: '',
@@ -25,6 +25,13 @@ export function LoginPage() {
 
   // Get redirect path from location state
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   // Check for error in URL params (from OAuth callback)
   useEffect(() => {
@@ -140,13 +147,8 @@ export function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to backend Google OAuth endpoint
-    const currentUrl = window.location.origin;
-    const redirectUrl = process.env.NODE_ENV === 'production' 
-      ? `${currentUrl}/.netlify/functions/index/auth/google`
-      : 'http://localhost:3001/auth/google';
-    
-    window.location.href = redirectUrl;
+    // For demo purposes, simulate Google login
+    setSubmitError('Google login is not available in demo mode. Please use email/password login.');
   };
 
   return (
@@ -179,6 +181,17 @@ export function LoginPage() {
                 </div>
               </div>
             )}
+
+            {/* Demo Notice */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="text-blue-500" size={20} />
+                <div>
+                  <p className="text-blue-700 dark:text-blue-400 text-sm font-medium">Demo Mode</p>
+                  <p className="text-blue-600 dark:text-blue-300 text-xs">Use any email and password to login</p>
+                </div>
+              </div>
+            </div>
 
             {/* Email */}
             <InputField
