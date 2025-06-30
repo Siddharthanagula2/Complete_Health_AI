@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle, Heart } from 'lucide-react';
 import { InputField } from '../../components/auth/InputField';
 import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator';
 import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
+import { LoadingScreen } from '../../components/LoadingScreen';
 import { passwordResetSchema } from '../../utils/validation';
 import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
@@ -20,16 +21,34 @@ export function ResetPasswordPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [success, setSuccess] = useState(false);
+  const [isValidToken, setIsValidToken] = useState(false);
 
   // Check for access token in URL
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    const checkToken = async () => {
+      try {
+        setIsPageLoading(true);
+        const accessToken = searchParams.get('access_token');
+        const refreshToken = searchParams.get('refresh_token');
+        
+        if (!accessToken && !refreshToken) {
+          setSubmitError('Invalid or expired reset link. Please request a new password reset.');
+          setIsValidToken(false);
+        } else {
+          // Verify token is valid
+          setIsValidToken(true);
+        }
+      } catch (error) {
+        setSubmitError('Invalid or expired reset link. Please request a new password reset.');
+        setIsValidToken(false);
+      } finally {
+        setIsPageLoading(false);
+      }
+    };
     
-    if (!accessToken) {
-      setSubmitError('Invalid or expired reset link. Please request a new password reset.');
-    }
+    checkToken();
   }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,6 +177,10 @@ export function ResetPasswordPage() {
     }
   };
 
+  if (isPageLoading) {
+    return <LoadingScreen message="Verifying reset link..." />;
+  }
+
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -181,6 +204,37 @@ export function ResetPasswordPage() {
               <LoadingSpinner size="sm" />
               <span className="ml-2 text-sm text-gray-500">Redirecting...</span>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isValidToken) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                <AlertCircle className="text-red-500" size={32} />
+              </div>
+            </div>
+            
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Invalid Reset Link
+            </h1>
+            
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              This password reset link is invalid or has expired. Please request a new password reset.
+            </p>
+            
+            <button
+              onClick={() => navigate('/forgot-password')}
+              className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+            >
+              Request New Reset Link
+            </button>
           </div>
         </div>
       </div>

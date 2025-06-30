@@ -4,6 +4,7 @@ import { AlertCircle, Heart, CheckCircle } from 'lucide-react';
 import { InputField } from '../../components/auth/InputField';
 import { SocialButton } from '../../components/auth/SocialButton';
 import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
+import { LoadingScreen } from '../../components/LoadingScreen';
 import { useAuth } from '../../contexts/AuthContext';
 import { loginSchema } from '../../utils/validation';
 import { LoginCredentials } from '../../types/auth';
@@ -24,14 +25,26 @@ export function LoginPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState('');
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Get redirect path from location state
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Check if there's a success message in location state
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+    }
+    setPageLoading(false);
+  }, [location.state]);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate(from, { replace: true });
+    } else {
+      setPageLoading(false);
     }
   }, [isAuthenticated, navigate, from]);
 
@@ -76,6 +89,11 @@ export function LoginPage() {
     // Clear email confirmation state
     if (needsEmailConfirmation) {
       setNeedsEmailConfirmation(false);
+    }
+
+    // Clear success message
+    if (successMessage) {
+      setSuccessMessage('');
     }
   };
 
@@ -125,6 +143,7 @@ export function LoginPage() {
     e.preventDefault();
     setSubmitError('');
     setNeedsEmailConfirmation(false);
+    setSuccessMessage('');
     
     // Mark all fields as touched
     const allTouched = Object.keys(formData).reduce((acc, key) => ({
@@ -175,7 +194,7 @@ export function LoginPage() {
         setSubmitError('');
         setNeedsEmailConfirmation(false);
         // Show success message
-        setSubmitError('Confirmation email sent! Please check your inbox.');
+        setSuccessMessage('Confirmation email sent! Please check your inbox.');
       } else {
         setSubmitError(response.message || 'Failed to resend confirmation email');
       }
@@ -183,6 +202,10 @@ export function LoginPage() {
       setSubmitError('Failed to resend confirmation email');
     }
   };
+
+  if (pageLoading) {
+    return <LoadingScreen message="Preparing login..." />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -240,11 +263,11 @@ export function LoginPage() {
             )}
 
             {/* Success Message */}
-            {submitError && submitError.includes('sent') && (
+            {(successMessage || (submitError && submitError.includes('sent'))) && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="text-green-500" size={20} />
-                  <p className="text-green-700 dark:text-green-400 text-sm">{submitError}</p>
+                  <p className="text-green-700 dark:text-green-400 text-sm">{successMessage || submitError}</p>
                 </div>
               </div>
             )}

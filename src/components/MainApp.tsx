@@ -88,6 +88,7 @@ export function MainApp() {
   const [activeTab, setActiveTab] = useState<ActiveTab>(getActiveTabFromPath(location.pathname));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Loading your health data...');
   
   // User data - merge auth user with mock data
   const [user, setUser] = useLocalStorage<UserType>('health-user', {
@@ -130,10 +131,14 @@ export function MainApp() {
       }
       
       setIsDataLoading(true);
+      
       try {
-        // Simulate loading delay for demo purposes
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Simulate loading sequence with different messages
+        setLoadingMessage('Connecting to your health data...');
+        await new Promise(resolve => setTimeout(resolve, 800));
         
+        setLoadingMessage('Retrieving your nutrition information...');
+        await new Promise(resolve => setTimeout(resolve, 700));
         // Load food entries
         const foodResult = await SupabaseHealthService.getFoodEntries();
         if (foodResult.success && foodResult.data.length > 0) {
@@ -141,6 +146,8 @@ export function MainApp() {
           setFoodEntries(entries);
         }
         
+        setLoadingMessage('Syncing your fitness activities...');
+        await new Promise(resolve => setTimeout(resolve, 600));
         // Load exercise entries
         const exerciseResult = await SupabaseHealthService.getExerciseEntries();
         if (exerciseResult.success && exerciseResult.data.length > 0) {
@@ -148,6 +155,8 @@ export function MainApp() {
           setExerciseEntries(entries);
         }
         
+        setLoadingMessage('Processing your health metrics...');
+        await new Promise(resolve => setTimeout(resolve, 500));
         // Load water entries
         const waterResult = await SupabaseHealthService.getWaterEntries();
         if (waterResult.success && waterResult.data.length > 0) {
@@ -168,6 +177,10 @@ export function MainApp() {
           const entries = moodResult.data.map(item => item.data_value);
           setMoodEntries(entries);
         }
+        
+        setLoadingMessage('Generating personalized insights...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
       } catch (error) {
         console.error('Error loading user data:', error);
       } finally {
@@ -445,7 +458,7 @@ export function MainApp() {
 
   // Show loading state while data is being loaded
   if (isDataLoading) {
-    return <LoadingScreen message="Loading your health data..." />;
+    return <LoadingScreen message={loadingMessage} />;
   }
 
   return (

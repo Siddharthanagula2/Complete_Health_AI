@@ -5,6 +5,7 @@ import { InputField } from '../../components/auth/InputField';
 import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator';
 import { SocialButton } from '../../components/auth/SocialButton';
 import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
+import { LoadingScreen } from '../../components/LoadingScreen';
 import { useAuth } from '../../contexts/AuthContext';
 import { signupSchema } from '../../utils/validation';
 import { SignupData } from '../../types/auth';
@@ -27,11 +28,14 @@ export function SignupPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState('');
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
+    } else {
+      setPageLoading(false);
     }
   }, [isAuthenticated, navigate]);
 
@@ -42,6 +46,7 @@ export function SignupPage() {
     if (error) {
       setSubmitError(decodeURIComponent(error));
     }
+    setPageLoading(false);
   }, [location.search]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,6 +202,10 @@ export function SignupPage() {
       setSubmitError('Failed to resend confirmation email');
     }
   };
+
+  if (pageLoading) {
+    return <LoadingScreen message="Preparing signup..." />;
+  }
 
   // Show success page if signup was successful but needs email confirmation
   if (signupSuccess) {
