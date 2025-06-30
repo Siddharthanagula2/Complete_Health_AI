@@ -80,22 +80,43 @@ export class SupabaseAuthService {
    */
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      // For demo purposes, simulate successful login
-      const mockUser = {
-        id: '1',
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: credentials.email,
-        fullName: 'Demo User',
-        isEmailVerified: true,
-        createdAt: new Date('2024-01-01'),
-        lastLogin: new Date()
-      };
+        password: credentials.password
+      });
 
-      const mockToken = 'mock-jwt-token-' + Date.now();
+      if (error) {
+        // Check for specific error messages
+        if (error.message.includes('Email not confirmed')) {
+          return {
+            success: false,
+            message: 'Please confirm your email address before signing in. Check your inbox for a confirmation link.',
+            errors: { email: 'Email not confirmed' }
+          };
+        }
 
-      // Store token and user data
-      localStorage.setItem('authToken', mockToken);
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
-      
+        if (error.message.includes('Invalid login credentials')) {
+          return {
+            success: false,
+            message: 'Invalid email or password. Please try again.',
+            errors: { password: 'Invalid login credentials' }
+          };
+        }
+
+        return {
+          success: false,
+          message: error.message,
+          errors: { email: error.message }
+        };
+      }
+
+      if (!data.user) {
+        return {
+          success: false,
+          message: 'Login failed. Please try again.',
+        };
+      }
+
       // Set remember me preference
       if (credentials.rememberMe) {
         localStorage.setItem('rememberMe', 'true');
@@ -103,16 +124,22 @@ export class SupabaseAuthService {
 
       return {
         success: true,
-        token: mockToken,
-        user: mockUser,
+        token: data.session?.access_token || '',
+        user: {
+          id: data.user.id,
+          email: data.user.email || '',
+          fullName: data.user.user_metadata?.full_name || 'User',
+          isEmailVerified: data.user.email_confirmed_at !== null,
+          createdAt: new Date(data.user.created_at),
+          lastLogin: new Date()
+        },
         message: 'Login successful!'
       };
     } catch (error: any) {
-      console.error('Login API error:', error);
+      console.error('Login error:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed',
-        errors: error.response?.data?.errors
+        message: 'An unexpected error occurred during login'
       };
     }
   }
@@ -123,8 +150,6 @@ export class SupabaseAuthService {
   static async logout(): Promise<void> {
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('authUser');
       localStorage.removeItem('rememberMe');
     } catch (error) {
       console.error('Logout error:', error);
@@ -165,7 +190,17 @@ export class SupabaseAuthService {
    */
   static async resetPassword(data: PasswordReset): Promise<AuthResponse> {
     try {
-      // For demo purposes, simulate successful password reset
+      const { error } = await supabase.auth.updateUser({
+        password: data.newPassword
+      });
+
+      if (error) {
+        return {
+          success: false,
+          message: error.message
+        };
+      }
+
       return {
         success: true,
         message: 'Password updated successfully!'
@@ -184,9 +219,18 @@ export class SupabaseAuthService {
    */
   static async getCurrentUser() {
     try {
-      // For demo purposes, get user from localStorage
-      const userStr = localStorage.getItem('authUser');
-      return userStr ? JSON.parse(userStr) : null;
+      const { data } = await supabase.auth.getUser();
+      
+      if (!data.user) return null;
+      
+      return {
+        id: data.user.id,
+        email: data.user.email || '',
+        fullName: data.user.user_metadata?.full_name || 'User',
+        isEmailVerified: data.user.email_confirmed_at !== null,
+        createdAt: new Date(data.user.created_at),
+        lastLogin: new Date()
+      };
     } catch (error) {
       console.error('Error getting current user:', error);
       return null;
@@ -198,24 +242,10 @@ export class SupabaseAuthService {
    */
   static async isAuthenticated(): Promise<boolean> {
     try {
-      const user = await this.getCurrentUser();
-      return !!user?.isEmailVerified;
+      const { data } = await supabase.auth.getSession();
+      return !!data.session;
     } catch (error) {
       console.error('Error checking authentication:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Verify token
-   */
-  static async verifyToken(): Promise<boolean> {
-    try {
-      // For demo purposes, always return true if token exists
-      const token = localStorage.getItem('authToken');
-      return !!token;
-    } catch (error) {
-      console.error('Token verification failed:', error);
       return false;
     }
   }
@@ -225,26 +255,25 @@ export class SupabaseAuthService {
    */
   static async socialLogin(provider: 'google' | 'github' | 'discord'): Promise<AuthResponse> {
     try {
-      // For demo purposes, simulate successful social login
-      const mockUser = {
-        id: Date.now().toString(),
-        email: 'social@example.com',
-        fullName: 'Social User',
-        isEmailVerified: true,
-        createdAt: new Date(),
-        lastLogin: new Date()
-      };
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
 
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      
-      localStorage.setItem('authToken', mockToken);
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
+      if (error) {
+        return {
+          success: false,
+          message: error.message
+        };
+      }
 
+      // This will redirect the user to the OAuth provider
+      // The success response will be handled when the user is redirected back
       return {
         success: true,
-        token: mockToken,
-        user: mockUser,
-        message: 'Social login successful!'
+        message: 'Redirecting to login provider...'
       };
     } catch (error: any) {
       console.error('Social login error:', error);
@@ -259,14 +288,21 @@ export class SupabaseAuthService {
    * Listen to auth state changes
    */
   static onAuthStateChange(callback: (user: any) => void) {
-    // For demo purposes, we'll just return a mock subscription
-    return {
-      data: {
-        subscription: {
-          unsubscribe: () => {}
-        }
+    return supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const user = {
+          id: session.user.id,
+          email: session.user.email || '',
+          fullName: session.user.user_metadata?.full_name || 'User',
+          isEmailVerified: session.user.email_confirmed_at !== null,
+          createdAt: new Date(session.user.created_at),
+          lastLogin: new Date()
+        };
+        callback(user);
+      } else if (event === 'SIGNED_OUT') {
+        callback(null);
       }
-    };
+    });
   }
 
   /**
@@ -274,7 +310,21 @@ export class SupabaseAuthService {
    */
   static async resendConfirmation(email: string): Promise<AuthResponse> {
     try {
-      // For demo purposes, simulate successful resend
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) {
+        return {
+          success: false,
+          message: error.message
+        };
+      }
+
       return {
         success: true,
         message: 'Confirmation email sent successfully!'

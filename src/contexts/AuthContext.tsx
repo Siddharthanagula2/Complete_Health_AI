@@ -27,6 +27,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     initializeAuth();
+
+    // Set up auth state change listener
+    const { data: authListener } = SupabaseAuthService.onAuthStateChange((user) => {
+      setUser(user);
+      setIsLoading(false);
+    });
+
+    // Clean up listener on unmount
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
