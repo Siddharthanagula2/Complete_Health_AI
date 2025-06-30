@@ -136,7 +136,7 @@ export class SupabaseAuthService {
    * Listen to auth state changes
    */
   static onAuthStateChange(callback: (user: AuthUser | null) => void) {
-    return supabase.auth.onAuthStateChange(async (event, session) => {
+    return supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         // Get user profile data
         const { data: profile } = await supabase
