@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import { LoadingScreen } from './components/LoadingScreen';
 
 // Lazy load components to reduce initial bundle size
