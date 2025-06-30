@@ -366,6 +366,8 @@ export default function SignupPage() {
                   onChange={handleInputChange}
                   onBlur={() => setTouched(prev => ({ ...prev, agreeToTerms: true }))}
                   className="mt-1 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
+                  aria-invalid={touched.agreeToTerms && !!errors.agreeToTerms}
+                  aria-describedby={errors.agreeToTerms ? "agreeToTerms-error" : undefined}
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                   I agree to the{' '}
@@ -381,7 +383,7 @@ export default function SignupPage() {
               
               {/* Terms error display */}
               {touched.agreeToTerms && errors.agreeToTerms && (
-                <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
+                <p id="agreeToTerms-error" className="text-sm text-red-600 dark:text-red-400 flex items-center">
                   <AlertCircle size={14} className="mr-1" />
                   <span>{errors.agreeToTerms}</span>
                 </p>

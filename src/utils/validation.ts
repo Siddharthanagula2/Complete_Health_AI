@@ -18,9 +18,18 @@ export const emailSchema = z
 // Full name validation schema
 export const fullNameSchema = z
   .string()
-  .min(2, 'Full name must be at least 2 characters')
+  .min(4, 'Full name must be at least 4 characters')
   .max(50, 'Full name must be less than 50 characters')
-  .regex(/^[a-zA-Z\s]+$/, 'Full name can only contain letters and spaces');
+  .regex(/^[a-zA-Z\s]+$/, 'Full name can only contain letters and spaces')
+  .refine(
+    (name) => {
+      const words = name.trim().split(/\s+/);
+      return words.length >= 2;
+    },
+    {
+      message: 'Please enter both first and last name'
+    }
+  );
 
 // Signup validation schema
 export const signupSchema = z.object({
