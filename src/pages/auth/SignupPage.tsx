@@ -382,7 +382,7 @@ export function SignupPage() {
               {/* Terms error display */}
               {touched.agreeToTerms && errors.agreeToTerms && (
                 <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
-                  <AlertCircle size={14} />
+                  <AlertCircle size={14} className="mr-1" />
                   <span>{errors.agreeToTerms}</span>
                 </p>
               )}

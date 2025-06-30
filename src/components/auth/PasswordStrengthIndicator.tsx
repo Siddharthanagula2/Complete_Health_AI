@@ -31,6 +31,7 @@ export function PasswordStrengthIndicator({ password, className = '' }: Password
                 ? strengthColors[color as keyof typeof strengthColors]
                 : 'bg-gray-200 dark:bg-gray-700'
             }`}
+            aria-hidden="true"
           />
         ))}
       </div>
@@ -38,10 +39,10 @@ export function PasswordStrengthIndicator({ password, className = '' }: Password
       {/* Strength label */}
       <div className="flex justify-between items-center">
         <span className={`text-sm font-medium ${
-          color === 'red' ? 'text-red-600' :
-          color === 'orange' ? 'text-orange-600' :
-          color === 'yellow' ? 'text-yellow-600' :
-          'text-green-600'
+          color === 'red' ? 'text-red-600 dark:text-red-400' :
+          color === 'orange' ? 'text-orange-600 dark:text-orange-400' :
+          color === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' :
+          'text-green-600 dark:text-green-400'
         }`}>
           {strengthLabels[score - 1] || 'Very Weak'}
         </span>
@@ -56,8 +57,8 @@ export function PasswordStrengthIndicator({ password, className = '' }: Password
           <p className="text-xs text-gray-600 dark:text-gray-400">Password must include:</p>
           <ul className="space-y-1">
             {feedback.map((requirement, index) => (
-              <li key={index} className="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
-                <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+              <li key={index} className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
                 <span>{requirement}</span>
               </li>
             ))}

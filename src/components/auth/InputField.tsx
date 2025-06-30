@@ -94,6 +94,8 @@ export function InputField({
           disabled={disabled}
           autoComplete={autoComplete}
           className={getInputClasses()}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${name}-error` : undefined}
         />
         
         {/* Icons container - positioned from right to left */}
@@ -114,6 +116,7 @@ export function InputField({
               className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none focus:text-gray-600 dark:focus:text-gray-300"
               tabIndex={-1}
               title={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
@@ -123,8 +126,8 @@ export function InputField({
       
       {/* Error message */}
       {error && (
-        <p className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
-          <AlertCircle size={14} />
+        <p id={`${name}-error`} className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
+          <AlertCircle size={14} className="mr-1" />
           <span>{error}</span>
         </p>
       )}
