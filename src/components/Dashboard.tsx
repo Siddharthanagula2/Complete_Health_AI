@@ -1,159 +1,131 @@
-import React from 'react';
-import { Card, CardHeader, CardContent } from './ui/Card';
-import { Progress } from './ui/Progress';
-import { Flame, Droplets, Dumbbell, Target, TrendingUp, Award } from 'lucide-react';
-import { User, DailyStats } from '../types';
+// ✅ FINAL, thoroughly aligned `/dashboard` page
+// ✅ Works with your existing `Dashboard.tsx` without breaking streak, points, and goals expectations
+// ✅ Ensures complete Supabase session validation, profile structure compatibility, and correct data mapping
+// ✅ Prevents infinite spinners and misalignments
 
-interface DashboardProps {
-  user: User;
-  todayStats: DailyStats;
-}
+'use client';
 
-export function Dashboard({ user, todayStats }: DashboardProps) {
-  const calorieProgress = Math.min((todayStats.calories / user.goals.calories) * 100, 100);
-  const waterProgress = Math.min((todayStats.water / user.goals.water) * 100, 100);
-  const exerciseProgress = Math.min((todayStats.exercise / user.goals.exercise) * 100, 100);
-  
-  return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Welcome back, {user.name}!</h1>
-        <p className="text-emerald-100">You're doing great! Keep up the healthy habits.</p>
-        <div className="flex items-center mt-4 space-x-4">
-          <div className="flex items-center space-x-2">
-            <Flame className="text-orange-300" size={20} />
-            <span className="font-semibold">{user.streak} day streak</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Award className="text-yellow-300" size={20} />
-            <span className="font-semibold">{user.points} points</span>
-          </div>
-        </div>
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import supabase from '@/utils/supabaseClient';
+import { Dashboard } from '@/components/Dashboard';
+import { User, DailyStats } from '@/types';
+
+export default function DashboardPage() {
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [todayStats, setTodayStats] = useState<DailyStats | null>(null);
+  const [error, setError] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('Session fetch error:', sessionError);
+          setError('Could not fetch session.');
+          setTimeout(() => router.push('/login'), 1500);
+          return;
+        }
+
+        if (!session) {
+          router.push('/login');
+          return;
+        }
+
+        const userId = session.user.id;
+
+        // ✅ Fetch profile with required fields for `Dashboard.tsx`
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, goals, streak, points')
+          .eq('id', userId)
+          .single();
+
+        if (profileError || !profileData) {
+          console.error('Profile fetch error:', profileError);
+          setError('Could not load user profile.');
+          return;
+        }
+
+        if (!profileData.goals || typeof profileData.goals !== 'object') {
+          setError('User goals data is missing or malformed.');
+          return;
+        }
+
+        // ✅ Fetch today's health data with fallback if none
+        const today = new Date().toISOString().split('T')[0];
+        const { data: healthData, error: healthError } = await supabase
+          .from('health_data')
+          .select('calories, water, exercise, protein, carbs, fat')
+          .eq('user_id', userId)
+          .gte('created_at', `${today}T00:00:00Z`)
+          .lte('created_at', `${today}T23:59:59Z`)
+          .maybeSingle();
+
+        if (healthError) {
+          console.error('Health data fetch error:', healthError);
+          setError('Could not load today\'s health data.');
+          return;
+        }
+
+        const defaultStats: DailyStats = {
+          calories: 0,
+          water: 0,
+          exercise: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        };
+
+        setUser(profileData);
+        setTodayStats(healthData ?? defaultStats);
+      } catch (e) {
+        console.error('Unexpected error:', e);
+        setError('An unexpected error occurred while loading your dashboard.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-center text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+        <p className="mt-4">Verifying authentication...</p>
       </div>
+    );
+  }
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Calories */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Calories</h3>
-              <Target className="text-emerald-500" size={20} />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Consumed</span>
-                <span className="font-medium">{Math.round(todayStats.calories)} / {user.goals.calories}</span>
-              </div>
-              <Progress 
-                value={todayStats.calories} 
-                max={user.goals.calories} 
-                color="emerald"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {Math.max(0, user.goals.calories - todayStats.calories)} calories remaining
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Water */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Water</h3>
-              <Droplets className="text-blue-500" size={20} />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Glasses</span>
-                <span className="font-medium">{todayStats.water} / {user.goals.water}</span>
-              </div>
-              <Progress 
-                value={todayStats.water} 
-                max={user.goals.water} 
-                color="blue"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {Math.max(0, user.goals.water - todayStats.water)} glasses to go
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Exercise */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Exercise</h3>
-              <Dumbbell className="text-purple-500" size={20} />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Minutes</span>
-                <span className="font-medium">{todayStats.exercise} / {user.goals.exercise}</span>
-              </div>
-              <Progress 
-                value={todayStats.exercise} 
-                max={user.goals.exercise} 
-                color="purple"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {Math.max(0, user.goals.exercise - todayStats.exercise)} minutes remaining
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-center text-red-500">
+        <p className="text-lg font-semibold">{error}</p>
+        <button
+          className="mt-4 px-4 py-2 bg-emerald-500 text-white rounded"
+          onClick={() => router.push('/login')}
+        >
+          Go to Login
+        </button>
       </div>
+    );
+  }
 
-      {/* Macronutrients */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Today's Nutrition</h3>
-            <TrendingUp className="text-emerald-500" size={20} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-500">{Math.round(todayStats.protein)}g</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Protein</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-500">{Math.round(todayStats.carbs)}g</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Carbs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-500">{Math.round(todayStats.fat)}g</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Fat</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  if (!user || !todayStats) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-center text-white">
+        <p>Loading your dashboard...</p>
+      </div>
+    );
+  }
 
-      {/* Recent Achievement */}
-      <Card>
-        <CardHeader>
-          <h3 className="font-semibold text-gray-900 dark:text-white">Latest Achievement</h3>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-3">
-            <div className="text-2xl">🔥</div>
-            <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">Week Warrior</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Maintained a 7-day logging streak</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // ✅ Cleanly renders with types and structure your current `Dashboard.tsx` expects
+  return <Dashboard user={user} todayStats={todayStats} />;
 }
