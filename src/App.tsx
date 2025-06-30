@@ -174,6 +174,11 @@ function App() {
                   <MainApp />
                 </ProtectedRoute>
               } />
+              <Route path="/integrations" element={
+                <ProtectedRoute>
+                  <MainApp />
+                </ProtectedRoute>
+              } />
               
               {/* Catch all - redirect to landing */}
               <Route path="*" element={<Navigate to="/" replace />} />

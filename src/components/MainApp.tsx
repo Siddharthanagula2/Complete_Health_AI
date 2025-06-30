@@ -21,6 +21,7 @@ import { FamilyDashboard } from './FamilyDashboard';
 import { ProviderPortal } from './ProviderPortal';
 import { MedicalRecords } from './MedicalRecords';
 import { Settings } from './Settings';
+import { Integrations } from './Integrations';
 import { 
   Home, 
   Utensils, 
@@ -43,7 +44,8 @@ import {
   Trophy,
   FileText,
   Settings as SettingsIcon,
-  LogOut
+  LogOut,
+  Wifi
 } from 'lucide-react';
 import { 
   User as UserType, 
@@ -63,7 +65,7 @@ import {
 } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
 
-type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'family' | 'provider-portal' | 'medical-records' | 'settings';
+type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'family' | 'provider-portal' | 'medical-records' | 'settings' | 'integrations';
 
 export function MainApp() {
   const location = useLocation();
@@ -235,6 +237,7 @@ export function MainApp() {
     { id: 'provider-portal', label: 'Provider Tools', icon: Stethoscope },
     { id: 'medical-records', label: 'Medical Records', icon: FileText },
     { id: 'medical', label: 'Medical', icon: Stethoscope },
+    { id: 'integrations', label: 'Integrations', icon: Wifi },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
     { id: 'profile', label: 'Profile', icon: User }
   ];
@@ -278,6 +281,8 @@ export function MainApp() {
           return <MedicalRecords />;
         case 'medical':
           return <MedicalProfessionalTools user={user} stats={[todayStats, ...dailyStats]} />;
+        case 'integrations':
+          return <Integrations />;
         case 'settings':
           return <Settings user={user} onUpdateUser={updateUser} />;
         case 'profile':
@@ -417,3 +422,5 @@ export function MainApp() {
     </div>
   );
 }
+
+export default MainApp;

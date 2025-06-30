@@ -73,50 +73,6 @@ export function Integrations() {
       isConnected: false,
       dataTypes: ['GPS Workouts', 'Heart Rate', 'VO2 Max', 'Training Load'],
       status: 'available'
-    },
-    {
-      id: 'oura',
-      name: 'Oura Ring',
-      category: 'wearable',
-      icon: <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-        <div className="w-3 h-3 border-2 border-white rounded-full"></div>
-      </div>,
-      description: 'Advanced sleep and recovery tracking with Oura Ring',
-      isConnected: false,
-      dataTypes: ['Sleep Stages', 'HRV', 'Body Temperature', 'Readiness'],
-      status: 'available'
-    },
-    {
-      id: 'whoop',
-      name: 'WHOOP',
-      category: 'wearable',
-      icon: <Heart className="text-red-500" size={24} />,
-      description: '24/7 health monitoring with WHOOP Strap',
-      isConnected: false,
-      dataTypes: ['Recovery', 'Strain', 'Sleep', 'HRV'],
-      status: 'available'
-    },
-    {
-      id: 'withings',
-      name: 'Withings Scale',
-      category: 'scale',
-      icon: <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
-        <div className="w-4 h-1 bg-white rounded"></div>
-      </div>,
-      description: 'Smart body composition scale with WiFi sync',
-      isConnected: false,
-      dataTypes: ['Weight', 'Body Fat', 'Muscle Mass', 'BMI'],
-      status: 'available'
-    },
-    {
-      id: 'omron',
-      name: 'Omron Blood Pressure',
-      category: 'monitor',
-      icon: <Heart className="text-red-600" size={24} />,
-      description: 'Bluetooth blood pressure monitor',
-      isConnected: false,
-      dataTypes: ['Blood Pressure', 'Heart Rate'],
-      status: 'available'
     }
   ]);
 
@@ -396,7 +352,7 @@ export function Integrations() {
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <BarChart3 className="text-green-500 mt-1" size={20} />
+              <Activity className="text-green-500 mt-1" size={20} />
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white">Comprehensive Insights</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
