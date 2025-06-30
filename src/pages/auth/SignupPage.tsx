@@ -3,24 +3,54 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertCircle, Heart, CheckCircle, Eye, EyeOff } from 'lucide-react';
-import { signupSchema, getPasswordStrength } from '../../utils/validation';
-import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
+import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { LoadingScreen } from '../../components/LoadingScreen';
-import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
-// Extract the type from the zod schema
+// Define the validation schema
+const signupSchema = z.object({
+  fullName: z.string()
+    .min(4, 'Full name must be at least 4 characters')
+    .max(50, 'Full name must be less than 50 characters')
+    .regex(/^[a-zA-Z\s]+$/, 'Full name can only contain letters and spaces')
+    .refine(
+      (name) => {
+        const words = name.trim().split(/\s+/);
+        return words.length >= 2;
+      },
+      {
+        message: 'Please enter both first and last name'
+      }
+    ),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/\d/, 'Password must contain at least one number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  agreeToTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the terms and conditions'
+  })
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
+});
+
+// Type for our form data
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const navigate = useNavigate();
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [signupSuccess, setSignupSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
-
+  
   // Initialize form with react-hook-form and zod validation
   const {
     register,
@@ -41,14 +71,14 @@ export default function SignupPage() {
 
   // Get current password value for strength indicator
   const password = watch('password');
-  const passwordStrength = getPasswordStrength(password || '');
+  const email = watch('email');
 
   // Check if user is already authenticated
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const isAuthenticated = await SupabaseAuthService.isAuthenticated();
-        if (isAuthenticated) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
           navigate('/dashboard', { replace: true });
         }
       } catch (error) {
@@ -61,66 +91,87 @@ export default function SignupPage() {
     checkAuth();
   }, [navigate]);
 
-  // Form submission handler
+  // Calculate password strength
+  const getPasswordStrength = (password: string) => {
+    if (!password) return { score: 0, color: 'red' };
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+    
+    const colors = ['red', 'red', 'orange', 'yellow', 'green', 'green'];
+    return { score, color: colors[score] };
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
   const onSubmit = async (data: SignupFormData) => {
-    setSubmitError('');
+    setServerError(null);
     setIsLoading(true);
     
     try {
-      const response = await SupabaseAuthService.signup({
-        fullName: data.fullName,
+      // Sign up with Supabase
+      const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        confirmPassword: data.confirmPassword,
-        agreeToTerms: data.agreeToTerms
+        options: {
+          data: {
+            full_name: data.fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
       });
       
-      if (response.success) {
-        if (response.message?.includes('email') || response.message?.includes('confirm')) {
-          setSignupSuccess(true);
+      if (error) {
+        // Handle specific Supabase errors
+        if (error.message.includes('already registered')) {
+          setServerError('An account with this email already exists. Please sign in instead.');
+        } else if (error.message.includes('password')) {
+          setServerError(error.message);
         } else {
-          navigate('/dashboard');
+          setServerError(error.message);
         }
+        return;
+      }
+      
+      // Check if email confirmation is required
+      if (authData.user && !authData.user.identities?.[0]?.identity_data?.email_verified) {
+        setSignupSuccess(true);
       } else {
-        setSubmitError(response.message || 'Signup failed');
+        // If no email confirmation required, redirect to dashboard
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       console.error('Signup error:', error);
-      setSubmitError('An unexpected error occurred. Please try again.');
+      setServerError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResendConfirmation = async () => {
-    const email = watch('email');
     if (!email) return;
     
     try {
       setIsLoading(true);
-      const response = await SupabaseAuthService.resendConfirmation(email);
-      if (response.success) {
-        setSubmitError('Confirmation email sent again! Please check your inbox.');
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
+      if (error) {
+        setServerError(error.message);
       } else {
-        setSubmitError(response.message || 'Failed to resend confirmation email');
+        setServerError('Confirmation email sent again! Please check your inbox.');
       }
     } catch (error) {
-      setSubmitError('Failed to resend confirmation email');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignup = async () => {
-    try {
-      setIsLoading(true);
-      const response = await SupabaseAuthService.socialLogin('google');
-      if (!response.success) {
-        setSubmitError(response.message || 'Google signup failed');
-      }
-      // If successful, the redirect will happen automatically
-    } catch (error) {
-      setSubmitError('Google signup is currently unavailable');
+      setServerError('Failed to resend confirmation email');
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +198,7 @@ export default function SignupPage() {
             </h1>
             
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              We've sent a confirmation link to <strong>{watch('email')}</strong>. 
+              We've sent a confirmation link to <strong>{email}</strong>. 
               Please check your email and click the link to activate your account.
             </p>
             
@@ -184,11 +235,6 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-xl flex items-center justify-center">
-              <Heart className="text-white" size={24} />
-            </div>
-          </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Create Your Account
           </h1>
@@ -200,22 +246,12 @@ export default function SignupPage() {
         {/* Signup Form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Submit Error */}
-            {submitError && !submitError.includes('sent') && (
+            {/* Error Message */}
+            {serverError && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-center space-x-2">
                   <AlertCircle className="text-red-500" size={20} />
-                  <p className="text-red-700 dark:text-red-400 text-sm">{submitError}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {submitError && submitError.includes('sent') && (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="text-green-500" size={20} />
-                  <p className="text-green-700 dark:text-green-400 text-sm">{submitError}</p>
+                  <p className="text-red-700 dark:text-red-400 text-sm">{serverError}</p>
                 </div>
               </div>
             )}
@@ -376,21 +412,6 @@ export default function SignupPage() {
                       {passwordStrength.score}/5
                     </span>
                   </div>
-                  
-                  {/* Requirements */}
-                  {passwordStrength.feedback.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Password must include:</p>
-                      <ul className="space-y-1">
-                        {passwordStrength.feedback.map((requirement, index) => (
-                          <li key={index} className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                            <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
-                            <span>{requirement}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -440,7 +461,7 @@ export default function SignupPage() {
                 <input
                   id="agreeToTerms"
                   type="checkbox"
-                  className="mt-1 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
+                  className="mt-1 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 dark:border-gray-600 dark:bg-gray-700"
                   aria-invalid={!!errors.agreeToTerms}
                   aria-describedby={errors.agreeToTerms ? "agreeToTerms-error" : undefined}
                   {...register('agreeToTerms')}
@@ -473,7 +494,10 @@ export default function SignupPage() {
             >
               {isLoading ? (
                 <>
-                  <LoadingSpinner size="sm" />
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   <span>Creating Account...</span>
                 </>
               ) : (
@@ -498,9 +522,29 @@ export default function SignupPage() {
 
           {/* Social Signup */}
           <button
-            onClick={handleGoogleSignup}
+            onClick={async () => {
+              try {
+                setIsLoading(true);
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: {
+                    redirectTo: `${window.location.origin}/dashboard`
+                  }
+                });
+                
+                if (error) {
+                  setServerError(error.message);
+                  setIsLoading(false);
+                }
+                // Redirect happens automatically
+              } catch (error) {
+                console.error('Google signup error:', error);
+                setServerError('Failed to connect with Google. Please try again.');
+                setIsLoading(false);
+              }
+            }}
             disabled={isLoading}
-            className="w-full flex items-center justify-center space-x-3 px-4 py-3 border rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+            className="w-full flex items-center justify-center space-x-3 px-4 py-3 border rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:bg-gray-50 text-gray-700 border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:border-gray-600"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
