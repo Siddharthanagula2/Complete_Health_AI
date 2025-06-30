@@ -61,7 +61,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     try {
       const response = await SupabaseAuthService.signup(data);
-      if (response.success && response.user) {
+      // Don't set user here if email confirmation is required
+      if (response.success && response.user && response.user.isEmailVerified) {
         setUser(response.user);
       }
       return response;
@@ -111,7 +112,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user?.isEmailVerified,
     isLoading,
     login,
     signup,

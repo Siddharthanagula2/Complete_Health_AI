@@ -56,18 +56,18 @@ export function InputField({
     }
     
     if (error) {
-      return `${baseClasses} ${paddingRight} border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50 dark:bg-red-900/10`;
+      return `${baseClasses} ${paddingRight} border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50 dark:bg-red-900/10 text-gray-900 dark:text-white`;
     }
     
     if (success) {
-      return `${baseClasses} ${paddingRight} border-green-300 focus:border-green-500 focus:ring-green-200 bg-green-50 dark:bg-green-900/10`;
+      return `${baseClasses} ${paddingRight} border-green-300 focus:border-green-500 focus:ring-green-200 bg-green-50 dark:bg-green-900/10 text-gray-900 dark:text-white`;
     }
     
     if (isFocused) {
-      return `${baseClasses} ${paddingRight} border-emerald-300 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800`;
+      return `${baseClasses} ${paddingRight} border-emerald-300 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`;
     }
     
-    return `${baseClasses} ${paddingRight} border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white`;
+    return `${baseClasses} ${paddingRight} border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400`;
   };
 
   return (

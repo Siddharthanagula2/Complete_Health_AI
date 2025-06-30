@@ -14,11 +14,29 @@ export class SupabaseAuthService {
         options: {
           data: {
             full_name: data.fullName,
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       })
 
       if (error) {
+        // Handle specific Supabase errors
+        if (error.message.includes('already registered')) {
+          return {
+            success: false,
+            message: 'An account with this email already exists. Please sign in instead.',
+            errors: { email: 'Email already registered' }
+          }
+        }
+        
+        if (error.message.includes('password')) {
+          return {
+            success: false,
+            message: error.message,
+            errors: { password: error.message }
+          }
+        }
+
         return {
           success: false,
           message: error.message,
@@ -34,14 +52,14 @@ export class SupabaseAuthService {
         }
       }
 
-      // Create user profile
-      if (authData.user) {
+      // Create user profile if user is confirmed
+      if (authData.user && authData.user.email_confirmed_at) {
         await this.createUserProfile(authData.user, data.fullName)
       }
 
       return {
         success: true,
-        message: 'Account created successfully!',
+        message: authData.user?.email_confirmed_at ? 'Account created successfully!' : 'Please check your email to confirm your account.',
         user: authData.user ? this.transformUser(authData.user) : undefined,
         token: authData.session?.access_token
       }
@@ -65,6 +83,22 @@ export class SupabaseAuthService {
       })
 
       if (error) {
+        // Handle specific Supabase errors
+        if (error.message.includes('Invalid login credentials')) {
+          return {
+            success: false,
+            message: 'Invalid email or password. Please check your credentials and try again.',
+            errors: { email: 'Invalid credentials', password: 'Invalid credentials' }
+          }
+        }
+
+        if (error.message.includes('Email not confirmed')) {
+          return {
+            success: false,
+            message: 'Please confirm your email address before signing in. Check your inbox for a confirmation link.'
+          }
+        }
+
         return {
           success: false,
           message: error.message,
@@ -75,7 +109,7 @@ export class SupabaseAuthService {
       if (!data.user?.email_confirmed_at) {
         return {
           success: false,
-          message: 'Please confirm your email address before signing in.'
+          message: 'Please confirm your email address before signing in. Check your inbox for a confirmation link.'
         }
       }
 
@@ -115,6 +149,13 @@ export class SupabaseAuthService {
       })
 
       if (error) {
+        if (error.message.includes('not found')) {
+          return {
+            success: false,
+            message: 'No account found with this email address.'
+          }
+        }
+
         return {
           success: false,
           message: error.message
@@ -123,7 +164,7 @@ export class SupabaseAuthService {
 
       return {
         success: true,
-        message: 'Password reset email sent successfully!'
+        message: 'Password reset email sent successfully! Please check your inbox.'
       }
     } catch (error: any) {
       console.error('Forgot password error:', error)
@@ -144,6 +185,14 @@ export class SupabaseAuthService {
       })
 
       if (error) {
+        if (error.message.includes('same as the old password')) {
+          return {
+            success: false,
+            message: 'New password must be different from your current password.',
+            errors: { newPassword: 'Password must be different' }
+          }
+        }
+
         return {
           success: false,
           message: error.message,
@@ -196,7 +245,7 @@ export class SupabaseAuthService {
   static async isAuthenticated(): Promise<boolean> {
     try {
       const session = await this.getCurrentSession()
-      return !!session?.user
+      return !!session?.user?.email_confirmed_at
     } catch (error) {
       console.error('Error checking authentication:', error)
       return false
@@ -209,7 +258,7 @@ export class SupabaseAuthService {
   static async verifyToken(): Promise<boolean> {
     try {
       const session = await this.getCurrentSession()
-      return !!session?.access_token
+      return !!session?.access_token && !!session?.user?.email_confirmed_at
     } catch (error) {
       console.error('Token verification failed:', error)
       return false
@@ -224,7 +273,11 @@ export class SupabaseAuthService {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       })
 
@@ -255,12 +308,14 @@ export class SupabaseAuthService {
     try {
       const { error } = await supabase
         .from('profiles')
-        .insert({
+        .upsert({
           id: user.id,
           email: user.email!,
           full_name: fullName,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
         })
 
       if (error) {
@@ -320,12 +375,15 @@ export class SupabaseAuthService {
       // Update profile table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
+          email: user.email!,
           full_name: updates.fullName,
           avatar_url: updates.avatarUrl,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
         })
-        .eq('id', user.id)
 
       if (profileError) {
         throw profileError
@@ -351,7 +409,10 @@ export class SupabaseAuthService {
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email: email
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
       })
 
       if (error) {
@@ -370,6 +431,35 @@ export class SupabaseAuthService {
       return {
         success: false,
         message: 'Failed to resend confirmation email'
+      }
+    }
+  }
+
+  /**
+   * Update user password
+   */
+  static async updatePassword(newPassword: string): Promise<AuthResponse> {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        return {
+          success: false,
+          message: error.message
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Password updated successfully!'
+      }
+    } catch (error: any) {
+      console.error('Update password error:', error)
+      return {
+        success: false,
+        message: 'Failed to update password'
       }
     }
   }

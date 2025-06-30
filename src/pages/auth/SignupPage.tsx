@@ -85,6 +85,18 @@ export function SignupPage() {
 
   const validateField = (fieldName: string) => {
     try {
+      // For individual field validation, we need to handle the schema differently
+      if (fieldName === 'confirmPassword') {
+        // Special handling for confirm password
+        if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
+          setErrors(prev => ({
+            ...prev,
+            confirmPassword: 'Passwords do not match'
+          }));
+          return;
+        }
+      }
+      
       // Create a partial schema for the specific field
       const fieldSchema = signupSchema.pick({ [fieldName]: true });
       fieldSchema.parse({ [fieldName]: formData[fieldName as keyof SignupData] });
@@ -143,7 +155,7 @@ export function SignupPage() {
       const response = await signup(formData);
       
       if (response.success) {
-        if (response.message?.includes('email')) {
+        if (response.message?.includes('email') || response.message?.includes('confirm')) {
           setSignupSuccess(true);
           setSubmitError('');
         } else {

@@ -206,7 +206,7 @@ export function LoginPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Submit Error */}
-            {submitError && !needsEmailConfirmation && (
+            {submitError && !needsEmailConfirmation && !submitError.includes('sent') && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-center space-x-2">
                   <AlertCircle className="text-red-500" size={20} />
