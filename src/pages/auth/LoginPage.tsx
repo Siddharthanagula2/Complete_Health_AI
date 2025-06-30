@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { AlertCircle, Heart } from 'lucide-react';
+import { AlertCircle, Heart, CheckCircle } from 'lucide-react';
 import { InputField } from '../../components/auth/InputField';
 import { SocialButton } from '../../components/auth/SocialButton';
 import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
 import { useAuth } from '../../contexts/AuthContext';
 import { loginSchema } from '../../utils/validation';
 import { LoginCredentials } from '../../types/auth';
+import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState('');
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
   // Get redirect path from location state
   const from = location.state?.from?.pathname || '/dashboard';
@@ -45,7 +47,6 @@ export function LoginPage() {
     
     // Handle OAuth success with token
     if (token) {
-      localStorage.setItem('authToken', token);
       navigate(from, { replace: true });
     }
   }, [location.search, navigate, from]);
@@ -70,6 +71,11 @@ export function LoginPage() {
     // Clear submit error
     if (submitError) {
       setSubmitError('');
+    }
+
+    // Clear email confirmation state
+    if (needsEmailConfirmation) {
+      setNeedsEmailConfirmation(false);
     }
   };
 
@@ -118,6 +124,7 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError('');
+    setNeedsEmailConfirmation(false);
     
     // Mark all fields as touched
     const allTouched = Object.keys(formData).reduce((acc, key) => ({
@@ -136,6 +143,9 @@ export function LoginPage() {
       if (response.success) {
         navigate(from, { replace: true });
       } else {
+        if (response.message?.includes('confirm') || response.message?.includes('verification')) {
+          setNeedsEmailConfirmation(true);
+        }
         setSubmitError(response.message || 'Login failed');
         if (response.errors) {
           setErrors(response.errors);
@@ -146,9 +156,32 @@ export function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // For demo purposes, simulate Google login
-    setSubmitError('Google login is not available in demo mode. Please use email/password login.');
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await SupabaseAuthService.socialLogin('google');
+      if (!response.success) {
+        setSubmitError(response.message || 'Google login failed');
+      }
+      // If successful, the redirect will happen automatically
+    } catch (error) {
+      setSubmitError('Google login is currently unavailable');
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    try {
+      const response = await SupabaseAuthService.resendConfirmation(formData.email);
+      if (response.success) {
+        setSubmitError('');
+        setNeedsEmailConfirmation(false);
+        // Show success message
+        setSubmitError('Confirmation email sent! Please check your inbox.');
+      } else {
+        setSubmitError(response.message || 'Failed to resend confirmation email');
+      }
+    } catch (error) {
+      setSubmitError('Failed to resend confirmation email');
+    }
   };
 
   return (
@@ -173,7 +206,7 @@ export function LoginPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Submit Error */}
-            {submitError && (
+            {submitError && !needsEmailConfirmation && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-center space-x-2">
                   <AlertCircle className="text-red-500" size={20} />
@@ -182,16 +215,39 @@ export function LoginPage() {
               </div>
             )}
 
-            {/* Demo Notice */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="text-blue-500" size={20} />
-                <div>
-                  <p className="text-blue-700 dark:text-blue-400 text-sm font-medium">Demo Mode</p>
-                  <p className="text-blue-600 dark:text-blue-300 text-xs">Use any email and password to login</p>
+            {/* Email Confirmation Notice */}
+            {needsEmailConfirmation && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="text-yellow-500 mt-0.5" size={20} />
+                  <div className="flex-1">
+                    <p className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">
+                      Email Confirmation Required
+                    </p>
+                    <p className="text-yellow-600 dark:text-yellow-300 text-sm mt-1">
+                      Please check your email and click the confirmation link before signing in.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleResendConfirmation}
+                      className="text-yellow-700 dark:text-yellow-400 text-sm font-medium underline mt-2 hover:no-underline"
+                    >
+                      Resend confirmation email
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Success Message */}
+            {submitError && submitError.includes('sent') && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="text-green-500" size={20} />
+                  <p className="text-green-700 dark:text-green-400 text-sm">{submitError}</p>
+                </div>
+              </div>
+            )}
 
             {/* Email */}
             <InputField

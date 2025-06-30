@@ -3,20 +3,20 @@ import { Link } from 'react-router-dom';
 import { AlertCircle, CheckCircle, Heart, ArrowLeft } from 'lucide-react';
 import { InputField } from '../../components/auth/InputField';
 import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
-import { useAuth } from '../../contexts/AuthContext';
 import { passwordResetRequestSchema } from '../../utils/validation';
+import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
 export function ForgotPasswordPage() {
-  const { forgotPassword, isLoading } = useAuth();
-  
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [touched, setTouched] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
     if (error) setError('');
+    if (success) setSuccess(false);
   };
 
   const handleInputBlur = () => {
@@ -44,16 +44,21 @@ export function ForgotPasswordPage() {
       return;
     }
     
+    setIsLoading(true);
+    
     try {
-      const response = await forgotPassword(email);
+      const response = await SupabaseAuthService.forgotPassword(email);
       
       if (response.success) {
         setSuccess(true);
+        setError('');
       } else {
         setError(response.message || 'Failed to send reset email');
       }
     } catch (error) {
       setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 

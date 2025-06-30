@@ -1,257 +1,280 @@
 # Complete Health Tracker
 
-A comprehensive health and wellness tracking application with AI-powered insights, now powered by Google Cloud Platform for enterprise-scale data management and HIPAA compliance.
+A comprehensive health and wellness tracking application with AI-powered insights, built with React, TypeScript, and Supabase.
 
-## 🏗️ Architecture Overview
+## 🚀 Features
 
-### Data Storage & Analytics Pipeline
+### 🔐 **Complete Authentication System**
+- **Email/Password Authentication** - Secure signup and login with Supabase Auth
+- **Email Verification** - Required email confirmation for new accounts
+- **Password Reset** - Secure password reset flow with email links
+- **Social Login** - Google OAuth integration
+- **Protected Routes** - Secure navigation with authentication checks
+- **Session Management** - Persistent login with automatic token refresh
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Firestore     │    │  Cloud Storage   │    │    BigQuery     │
-│ (Primary DB)    │───▶│   (Data Lake)    │───▶│  (Analytics)    │
-│                 │    │                  │    │                 │
-│ • User Data     │    │ • Daily Exports  │    │ • ML Training   │
-│ • Health Metrics│    │ • Anonymized PHI │    │ • Trend Analysis│
-│ • Encrypted     │    │ • JSON Format    │    │ • Population    │
-│   at Rest       │    │ • Partitioned    │    │   Health Stats  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
+### 📊 **Health Tracking**
+- **Nutrition Logging** - Track meals, calories, macros with barcode scanning
+- **Exercise Tracking** - Log workouts, GPS tracking, heart rate monitoring
+- **Water Intake** - Simple hydration tracking with daily goals
+- **Sleep Monitoring** - Track sleep duration, quality, and patterns
+- **Mood Tracking** - Daily mood logging with factors and notes
+- **Weight Management** - Progress tracking towards health goals
 
-## 🚀 Setup Instructions
+### 🤖 **AI-Powered Features**
+- **AI Health Coach** - Personalized recommendations and insights
+- **Predictive Analytics** - Early health warnings and trend analysis
+- **Smart Meal Planning** - AI-generated meal plans based on goals
+- **Voice Interactions** - Voice-to-text logging and AI responses
+- **Health Correlations** - Discover patterns in your health data
 
-### 1. Prerequisites
+### 🏆 **Gamification & Social**
+- **Achievement System** - Unlock badges and earn points
+- **Streak Tracking** - Build healthy habits with daily streaks
+- **Community Challenges** - Compete with friends and community
+- **Leaderboards** - Track progress against others
+- **Family Dashboard** - Monitor family health (with privacy controls)
 
+### 🏥 **Medical Integration**
+- **Provider Portal** - Healthcare professional dashboard
+- **Medical Records** - Secure storage of health records
+- **Lab Results** - Integration with medical test results
+- **Medication Tracking** - Prescription and supplement management
+- **HIPAA Compliance** - Enterprise-grade security for health data
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **Authentication**: Supabase Auth with email verification
+- **Database**: PostgreSQL with Row Level Security (RLS)
+- **Deployment**: Netlify with serverless functions
+- **Icons**: Lucide React
+- **Validation**: Zod schema validation
+- **Routing**: React Router v6
+
+## 🚀 Quick Start
+
+### Prerequisites
 - Node.js 18+ installed
-- Google Cloud Platform account
-- GCP Project with billing enabled
-- Service Account JSON key file
+- Supabase account
+- Git
 
-### 2. Environment Configuration
-
-Create `server/.env` file with your service account JSON:
-
+### 1. Clone the Repository
 ```bash
-# Google OAuth (existing)
-GOOGLE_CLIENT_ID=xxxxxxxxxxxx
-GOOGLE_CLIENT_SECRET=xxxxxxxxxx
-
-# Google Cloud Platform Service Account JSON (REQUIRED)
-# Copy the entire content of your service account JSON file as a single line string
-GOOGLE_APPLICATION_CREDENTIALS_JSON={xxxxxxx}
-
-# Analytics Pipeline
-GCS_ANALYTICS_BUCKET=xxxxxxxx
-BIGQUERY_DATASET_ID=xxxxx
-
-# Security
-JWT_SECRET=your-secure-jwt-secret-here
-
-# Server
-PORT=xxxx
-NODE_ENV=xxxxxxxxx
+git clone <repository-url>
+cd complete-health-tracker
 ```
 
-### 3. Install Dependencies & Setup
-
+### 2. Install Dependencies
 ```bash
-# Install all dependencies
 npm install
-
-# Setup GCP resources (buckets, datasets, tables)
-npm run setup-gcp
-
-# Start the application
-npm run dev:full
 ```
 
-## 🔥 Firestore Database Schema
+### 3. Set Up Supabase
 
-### Collections Structure
-
-```
-users/
-├── {userId}/
-    ├── id: string
-    ├── email: string
-    ├── fullName: string
-    ├── authProvider: 'email' | 'google'
-    ├── createdAt: timestamp
-    ├── dataClassification: 'PHI'
-    └── encryptionStatus: 'encrypted_at_rest'
-
-food_entries/
-├── {entryId}/
-    ├── userId: string
-    ├── name: string
-    ├── calories: number
-    ├── protein: number
-    ├── meal: 'breakfast' | 'lunch' | 'dinner' | 'snack'
-    ├── timestamp: timestamp
-    └── dataClassification: 'PHI'
-
-exercise_entries/
-water_entries/
-sleep_entries/
-mood_entries/
-```
-
-## 📊 Analytics Pipeline
-
-### Daily Data Export Process
-
-1. **Scheduled Export** (2 AM UTC daily)
-   - Extracts previous day's data from Firestore
-   - Anonymizes user data (removes PII, keeps health metrics)
-   - Uploads to Cloud Storage as JSON
-
-2. **BigQuery Loading**
-   - Automatically loads anonymized data into BigQuery tables
-   - Partitioned by date for optimal query performance
-   - Clustered by anonymous user ID
-
-3. **Analytics Queries**
-   - Population health trends
-   - Exercise pattern analysis
-   - Sleep quality correlations
-   - Nutrition insights for ML training
-
-### Manual Export
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to Settings > API to get your project URL and anon key
+3. Copy `.env.example` to `.env` and add your Supabase credentials:
 
 ```bash
-# Export yesterday's data manually
-npm run export-analytics
+cp .env.example .env
 ```
 
-## 🔐 HIPAA Compliance Features
+Edit `.env`:
+```env
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-### Data Encryption
-- **At Rest**: Firestore automatically encrypts all data
-- **In Transit**: All API calls use HTTPS/TLS
-- **Service Account**: Secure authentication with JSON key
+### 4. Set Up Database Schema
 
-### Data Anonymization
-- User IDs hashed with SHA-256 for analytics
-- PII removed from exported datasets
-- Health metrics preserved for research
+Run these SQL commands in your Supabase SQL editor:
 
-### Access Controls
-- Service account with minimal required permissions
-- Role-based access control (RBAC)
-- Audit logging enabled
+```sql
+-- Create profiles table
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT NOT NULL,
+  full_name TEXT,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-## 🛠️ API Endpoints
+-- Create health_data table
+CREATE TABLE health_data (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  data_type TEXT NOT NULL,
+  data_value JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-### Authentication
-- `POST /api/auth/signup` - Manual user registration
-- `POST /api/auth/login` - Email/password login
-- `GET /auth/google` - Google OAuth initiation
-- `GET /auth/google/callback` - Google OAuth callback
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE health_data ENABLE ROW LEVEL SECURITY;
 
-### Health Data
-- `POST /api/health/food` - Create food entry
-- `GET /api/health/food` - Get user food entries
-- `POST /api/health/exercise` - Create exercise entry
-- `GET /api/health/exercise` - Get user exercise entries
-- `POST /api/health/water` - Create water entry
-- `GET /api/health/water` - Get user water entries
-- `POST /api/health/sleep` - Create sleep entry
-- `GET /api/health/sleep` - Get user sleep entries
-- `POST /api/health/mood` - Create mood entry
-- `GET /api/health/mood` - Get user mood entries
-- `GET /api/health/summary` - Get aggregated health data
+-- Create policies for profiles
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
 
-### Analytics
-- `POST /api/analytics/export` - Manual data export
-- `GET /api/analytics/trends/nutrition` - Population nutrition trends
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
 
-## 🔧 Development Commands
+CREATE POLICY "Users can insert own profile" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Create policies for health_data
+CREATE POLICY "Users can view own health data" ON health_data
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own health data" ON health_data
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own health data" ON health_data
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own health data" ON health_data
+  FOR DELETE USING (auth.uid() = user_id);
+```
+
+### 5. Configure Authentication
+
+In your Supabase dashboard:
+
+1. Go to Authentication > Settings
+2. Enable email confirmations
+3. Set up email templates (optional)
+4. Configure OAuth providers (Google, etc.)
+
+### 6. Start Development Server
 
 ```bash
-# Start frontend + backend
-npm run dev:full
-
-# Backend only
-npm run server
-
-# Frontend only  
 npm run dev
-
-# Setup GCP resources
-npm run setup-gcp
-
-# Manual analytics export
-npm run export-analytics
-
-# Build for production
-npm run build
 ```
 
-## 📈 Monitoring & Observability
+The app will be available at `http://localhost:5173`
 
-### Health Check
-```bash
-curl http://localhost:3001/health
+## 🔧 Configuration
+
+### Email Authentication
+- Email verification is **required** by default
+- Users must confirm their email before they can sign in
+- Password reset uses secure email links
+
+### Environment Variables
+```env
+# Required
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+
+# Optional
+VITE_APP_ENV=development
 ```
 
-### Logs
-- Application logs include request tracking
-- GCP operations logged with timestamps
-- Error tracking with stack traces
+### Supabase Configuration
+- Row Level Security (RLS) is enabled on all tables
+- Users can only access their own data
+- Real-time subscriptions for live updates
+- Automatic session management
 
-### Metrics
-- Daily export success/failure rates
-- API response times
-- Database query performance
+## 📱 Features Overview
 
-## 🚀 Production Deployment
+### Authentication Flow
+1. **Sign Up**: Email + password with verification required
+2. **Email Confirmation**: Users must click email link to activate account
+3. **Sign In**: Email + password authentication
+4. **Password Reset**: Secure email-based password reset
+5. **Social Login**: Google OAuth integration
+6. **Session Management**: Automatic token refresh and persistence
+
+### Health Data Management
+- **Local Storage**: Offline-first with localStorage backup
+- **Supabase Sync**: Real-time sync with cloud database
+- **Data Privacy**: All health data is encrypted and user-owned
+- **Export/Import**: Full data portability
+
+### Security Features
+- **Row Level Security**: Database-level access control
+- **Email Verification**: Required for account activation
+- **Secure Password Reset**: Time-limited reset tokens
+- **HTTPS Only**: All communications encrypted
+- **Input Validation**: Client and server-side validation
+
+## 🚀 Deployment
+
+### Netlify Deployment
+
+1. Connect your repository to Netlify
+2. Set environment variables in Netlify dashboard
+3. Deploy automatically on git push
 
 ### Environment Variables for Production
-```bash
-# Update redirect URI for production
-REDIRECT_URI=https://your-api-domain.com/auth/google/callback
-
-# Production database settings
-NODE_ENV=production
+```env
+VITE_SUPABASE_URL=your-production-supabase-url
+VITE_SUPABASE_ANON_KEY=your-production-anon-key
 ```
 
 ## 🔍 Troubleshooting
 
 ### Common Issues
 
-1. **Service Account Authentication Error**
-   ```bash
-   # Verify JSON format in environment variable
-   echo $GOOGLE_APPLICATION_CREDENTIALS_JSON | jq .
-   ```
+1. **Email Verification Not Working**
+   - Check Supabase email settings
+   - Verify SMTP configuration
+   - Check spam folder
 
-2. **Firestore Permission Denied**
-   ```bash
-   # Check service account has Datastore User role
-   # Verify project_id matches in JSON
-   ```
+2. **Authentication Errors**
+   - Verify Supabase URL and keys
+   - Check RLS policies
+   - Ensure email confirmation is enabled
 
-3. **BigQuery Dataset Not Found**
-   ```bash
-   # Run setup script again
-   npm run setup-gcp
-   ```
+3. **Database Connection Issues**
+   - Verify environment variables
+   - Check Supabase project status
+   - Review database policies
 
 ### Debug Mode
 ```bash
 # Enable debug logging
-DEBUG=* npm run server
+VITE_DEBUG=true npm run dev
 ```
 
-## 📚 Additional Resources
+## 📚 API Documentation
 
-- [Firestore Documentation](https://cloud.google.com/firestore/docs)
-- [BigQuery ML Guide](https://cloud.google.com/bigquery-ml/docs)
-- [HIPAA on GCP](https://cloud.google.com/security/compliance/hipaa)
-- [Cloud Storage Best Practices](https://cloud.google.com/storage/docs/best-practices)
+### Authentication
+- `POST /auth/signup` - Create new account
+- `POST /auth/signin` - Sign in user
+- `POST /auth/signout` - Sign out user
+- `POST /auth/reset-password` - Request password reset
+- `PUT /auth/update-password` - Update password
+
+### Health Data
+- `GET /api/health/summary` - Get health summary
+- `POST /api/health/food` - Log food entry
+- `POST /api/health/exercise` - Log exercise
+- `POST /api/health/water` - Log water intake
+- `POST /api/health/sleep` - Log sleep data
+- `POST /api/health/mood` - Log mood entry
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+For support, email support@completehealth.app or join our Discord community.
 
 ---
 
-**🏥 HIPAA Compliance Note**: This implementation includes enterprise-grade security features for handling Protected Health Information (PHI). Ensure your GCP project has a signed Business Associate Agreement (BAA) with Google Cloud for production use.
+**🏥 Health Data Privacy**: This application is designed with privacy-first principles. All health data is encrypted, user-owned, and never shared without explicit consent. The app is built to be HIPAA-compliant for healthcare provider use.
 
-**🔑 Service Account Security**: The service account JSON key contains sensitive credentials. Never commit this to version control or expose it publicly. Use environment variables and secure secret management in production.
+**🔐 Security**: Built with enterprise-grade security features including Row Level Security, email verification, and secure authentication flows.

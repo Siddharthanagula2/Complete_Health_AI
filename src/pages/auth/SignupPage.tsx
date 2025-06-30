@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { AlertCircle, Heart } from 'lucide-react';
+import { AlertCircle, Heart, CheckCircle } from 'lucide-react';
 import { InputField } from '../../components/auth/InputField';
 import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator';
 import { SocialButton } from '../../components/auth/SocialButton';
@@ -8,6 +8,7 @@ import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
 import { useAuth } from '../../contexts/AuthContext';
 import { signupSchema } from '../../utils/validation';
 import { SignupData } from '../../types/auth';
+import { SupabaseAuthService } from '../../services/supabaseAuthService';
 
 export function SignupPage() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export function SignupPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState('');
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -62,6 +64,11 @@ export function SignupPage() {
     // Clear submit error
     if (submitError) {
       setSubmitError('');
+    }
+
+    // Clear success state
+    if (signupSuccess) {
+      setSignupSuccess(false);
     }
   };
 
@@ -118,6 +125,7 @@ export function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError('');
+    setSignupSuccess(false);
     
     // Mark all fields as touched
     const allTouched = Object.keys(formData).reduce((acc, key) => ({
@@ -135,7 +143,12 @@ export function SignupPage() {
       const response = await signup(formData);
       
       if (response.success) {
-        navigate('/dashboard');
+        if (response.message?.includes('email')) {
+          setSignupSuccess(true);
+          setSubmitError('');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setSubmitError(response.message || 'Signup failed');
         if (response.errors) {
@@ -148,10 +161,78 @@ export function SignupPage() {
     }
   };
 
-  const handleGoogleSignup = () => {
-    // For demo purposes, simulate Google signup
-    setSubmitError('Google signup is not available in demo mode. Please use email/password signup.');
+  const handleGoogleSignup = async () => {
+    try {
+      const response = await SupabaseAuthService.socialLogin('google');
+      if (!response.success) {
+        setSubmitError(response.message || 'Google signup failed');
+      }
+      // If successful, the redirect will happen automatically
+    } catch (error) {
+      setSubmitError('Google signup is currently unavailable');
+    }
   };
+
+  const handleResendConfirmation = async () => {
+    try {
+      const response = await SupabaseAuthService.resendConfirmation(formData.email);
+      if (response.success) {
+        setSubmitError('Confirmation email sent again! Please check your inbox.');
+      } else {
+        setSubmitError(response.message || 'Failed to resend confirmation email');
+      }
+    } catch (error) {
+      setSubmitError('Failed to resend confirmation email');
+    }
+  };
+
+  // Show success page if signup was successful but needs email confirmation
+  if (signupSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                <CheckCircle className="text-green-500" size={32} />
+              </div>
+            </div>
+            
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Check Your Email
+            </h1>
+            
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              We've sent a confirmation link to <strong>{formData.email}</strong>. 
+              Please check your email and click the link to activate your account.
+            </p>
+            
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Didn't receive the email? Check your spam folder or try again.
+              </p>
+              
+              <button
+                onClick={handleResendConfirmation}
+                className="text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors"
+              >
+                Resend confirmation email
+              </button>
+            </div>
+            
+            <div className="mt-8">
+              <Link
+                to="/login"
+                className="text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+              >
+                Back to login
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -175,7 +256,7 @@ export function SignupPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Submit Error */}
-            {submitError && (
+            {submitError && !submitError.includes('sent') && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-center space-x-2">
                   <AlertCircle className="text-red-500" size={20} />
@@ -184,16 +265,15 @@ export function SignupPage() {
               </div>
             )}
 
-            {/* Demo Notice */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="text-blue-500" size={20} />
-                <div>
-                  <p className="text-blue-700 dark:text-blue-400 text-sm font-medium">Demo Mode</p>
-                  <p className="text-blue-600 dark:text-blue-300 text-xs">Create an account with any valid information</p>
+            {/* Success Message */}
+            {submitError && submitError.includes('sent') && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="text-green-500" size={20} />
+                  <p className="text-green-700 dark:text-green-400 text-sm">{submitError}</p>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Full Name */}
             <InputField

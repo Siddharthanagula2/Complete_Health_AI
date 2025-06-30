@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { AuthUser, AuthContextType, LoginCredentials, SignupData, PasswordReset } from '../types/auth';
-import { AuthService } from '../services/authService';
+import { SupabaseAuthService } from '../services/supabaseAuthService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -13,37 +13,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already authenticated on app start
+    // Initialize auth state
     const initializeAuth = async () => {
       try {
-        const currentUser = AuthService.getCurrentUser();
-        const token = AuthService.getToken();
-        
-        if (currentUser && token) {
-          // Verify token is still valid
-          const isValid = await AuthService.verifyToken();
-          if (isValid) {
-            setUser(currentUser);
-          } else {
-            // Token is invalid, clear storage
-            AuthService.logout();
-          }
-        }
+        const currentUser = await SupabaseAuthService.getCurrentUser();
+        setUser(currentUser);
       } catch (error) {
         console.error('Auth initialization error:', error);
-        AuthService.logout();
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeAuth();
+
+    // Listen to auth state changes
+    const { data: { subscription } } = SupabaseAuthService.onAuthStateChange((user) => {
+      setUser(user);
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true);
     try {
-      const response = await AuthService.login(credentials);
+      const response = await SupabaseAuthService.login(credentials);
       if (response.success && response.user) {
         setUser(response.user);
       }
@@ -62,7 +60,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signup = async (data: SignupData) => {
     setIsLoading(true);
     try {
-      const response = await AuthService.signup(data);
+      const response = await SupabaseAuthService.signup(data);
       if (response.success && response.user) {
         setUser(response.user);
       }
@@ -78,14 +76,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const logout = () => {
-    AuthService.logout();
-    setUser(null);
+  const logout = async () => {
+    try {
+      await SupabaseAuthService.logout();
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const forgotPassword = async (email: string) => {
     try {
-      return await AuthService.forgotPassword(email);
+      return await SupabaseAuthService.forgotPassword(email);
     } catch (error) {
       console.error('Forgot password error:', error);
       return {
@@ -97,7 +99,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const resetPassword = async (data: PasswordReset) => {
     try {
-      return await AuthService.resetPassword(data);
+      return await SupabaseAuthService.resetPassword(data);
     } catch (error) {
       console.error('Reset password error:', error);
       return {
