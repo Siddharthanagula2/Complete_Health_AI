@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { FoodEntry, ExerciseEntry, WaterEntry, SleepEntry, MoodEntry } from '../types'
+import { FoodEntry, ExerciseEntry, WaterEntry, SleepEntry, MoodEntry, MedicationReminder } from '../types'
 
 export class SupabaseHealthService {
   /**
@@ -131,6 +131,184 @@ export class SupabaseHealthService {
    */
   static async getMoodEntries(limit = 100) {
     return this.getHealthData('mood_entry', limit)
+  }
+
+  /**
+   * Save medication reminder
+   */
+  static async saveMedicationReminder(reminder: Omit<MedicationReminder, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
+      const { data, error } = await supabase
+        .from('medication_reminders')
+        .insert({
+          user_id: user.id,
+          medication_name: reminder.medicationName,
+          dosage: reminder.dosage,
+          frequency: reminder.frequency,
+          time_of_day: reminder.timeOfDay,
+          start_date: reminder.startDate,
+          end_date: reminder.endDate,
+          notes: reminder.notes
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw error
+      }
+
+      return { 
+        success: true, 
+        data: {
+          id: data.id,
+          userId: data.user_id,
+          medicationName: data.medication_name,
+          dosage: data.dosage,
+          frequency: data.frequency,
+          timeOfDay: data.time_of_day,
+          startDate: new Date(data.start_date),
+          endDate: data.end_date ? new Date(data.end_date) : undefined,
+          notes: data.notes,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at)
+        } as MedicationReminder
+      }
+    } catch (error: any) {
+      console.error('Error saving medication reminder:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  /**
+   * Get medication reminders
+   */
+  static async getMedicationReminders() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
+      const { data, error } = await supabase
+        .from('medication_reminders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        throw error
+      }
+
+      return { 
+        success: true, 
+        data: (data || []).map(item => ({
+          id: item.id,
+          userId: item.user_id,
+          medicationName: item.medication_name,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          timeOfDay: item.time_of_day,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : undefined,
+          notes: item.notes,
+          createdAt: new Date(item.created_at),
+          updatedAt: new Date(item.updated_at)
+        })) as MedicationReminder[]
+      }
+    } catch (error: any) {
+      console.error('Error getting medication reminders:', error)
+      return { success: false, error: error.message, data: [] }
+    }
+  }
+
+  /**
+   * Update medication reminder
+   */
+  static async updateMedicationReminder(id: string, updates: Partial<Omit<MedicationReminder, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
+      const updateData: any = {}
+      
+      if (updates.medicationName !== undefined) updateData.medication_name = updates.medicationName
+      if (updates.dosage !== undefined) updateData.dosage = updates.dosage
+      if (updates.frequency !== undefined) updateData.frequency = updates.frequency
+      if (updates.timeOfDay !== undefined) updateData.time_of_day = updates.timeOfDay
+      if (updates.startDate !== undefined) updateData.start_date = updates.startDate
+      if (updates.endDate !== undefined) updateData.end_date = updates.endDate
+      if (updates.notes !== undefined) updateData.notes = updates.notes
+
+      const { data, error } = await supabase
+        .from('medication_reminders')
+        .update(updateData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single()
+
+      if (error) {
+        throw error
+      }
+
+      return { 
+        success: true, 
+        data: {
+          id: data.id,
+          userId: data.user_id,
+          medicationName: data.medication_name,
+          dosage: data.dosage,
+          frequency: data.frequency,
+          timeOfDay: data.time_of_day,
+          startDate: new Date(data.start_date),
+          endDate: data.end_date ? new Date(data.end_date) : undefined,
+          notes: data.notes,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at)
+        } as MedicationReminder
+      }
+    } catch (error: any) {
+      console.error('Error updating medication reminder:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  /**
+   * Delete medication reminder
+   */
+  static async deleteMedicationReminder(id: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
+      const { error } = await supabase
+        .from('medication_reminders')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+      if (error) {
+        throw error
+      }
+
+      return { success: true }
+    } catch (error: any) {
+      console.error('Error deleting medication reminder:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   /**

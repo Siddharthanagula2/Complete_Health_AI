@@ -228,3 +228,17 @@ export interface Meal {
   ingredients: string[];
   prepTime: number;
 }
+
+export interface MedicationReminder {
+  id: string;
+  userId: string;
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+  timeOfDay: string[];
+  startDate: Date;
+  endDate?: Date;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

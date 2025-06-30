@@ -22,6 +22,7 @@ import { ProviderPortal } from './ProviderPortal';
 import { MedicalRecords } from './MedicalRecords';
 import { Settings } from './Settings';
 import { Integrations } from './Integrations';
+import { MedicationReminders } from './MedicationReminders';
 import { LoadingScreen } from './LoadingScreen';
 import { 
   Home, 
@@ -46,7 +47,8 @@ import {
   FileText,
   Settings as SettingsIcon,
   LogOut,
-  Wifi
+  Wifi,
+  Pill
 } from 'lucide-react';
 import { 
   User as UserType, 
@@ -72,7 +74,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { SupabaseHealthService } from '../services/supabaseHealthService';
 
-type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'family' | 'provider-portal' | 'medical-records' | 'settings' | 'integrations';
+type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'family' | 'provider-portal' | 'medical-records' | 'settings' | 'integrations' | 'medications';
 
 export function MainApp() {
   const location = useLocation();
@@ -369,6 +371,7 @@ export function MainApp() {
     { id: 'gps-workout', label: 'GPS Workout', icon: MapPin },
     { id: 'sleep', label: 'Sleep', icon: Moon },
     { id: 'mood', label: 'Mood', icon: Heart },
+    { id: 'medications', label: 'Medications', icon: Pill },
     { id: 'nutrition-planner', label: 'Meal Planner', icon: Calendar },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -402,6 +405,8 @@ export function MainApp() {
           return <SleepTracker entries={sleepEntries} onAddEntry={addSleepEntry} goal={8} />;
         case 'mood':
           return <MoodTracker entries={moodEntries} onAddEntry={addMoodEntry} />;
+        case 'medications':
+          return <MedicationReminders />;
         case 'nutrition-planner':
           return <NutritionPlanner user={user} />;
         case 'progress':
