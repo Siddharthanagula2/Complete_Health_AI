@@ -48,6 +48,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(response.user);
       }
       return response;
+    } catch (error) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        message: 'An unexpected error occurred during login'
+      };
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +67,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(response.user);
       }
       return response;
+    } catch (error) {
+      console.error('Signup error:', error);
+      return {
+        success: false,
+        message: 'An unexpected error occurred during signup'
+      };
     } finally {
       setIsLoading(false);
     }
@@ -72,11 +84,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const forgotPassword = async (email: string) => {
-    return await AuthService.forgotPassword(email);
+    try {
+      return await AuthService.forgotPassword(email);
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return {
+        success: false,
+        message: 'An unexpected error occurred'
+      };
+    }
   };
 
   const resetPassword = async (data: PasswordReset) => {
-    return await AuthService.resetPassword(data);
+    try {
+      return await AuthService.resetPassword(data);
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return {
+        success: false,
+        message: 'An unexpected error occurred'
+      };
+    }
   };
 
   const value: AuthContextType = {

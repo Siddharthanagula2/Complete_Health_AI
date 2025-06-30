@@ -7,7 +7,7 @@ const API_BASE_URL = '/api/auth';
 // Create axios instance with default config
 const authAPI = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -33,7 +33,10 @@ authAPI.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
-      window.location.href = '/login';
+      // Only redirect if we're not already on a public page
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -46,8 +49,16 @@ export class AuthService {
   static async signup(data: SignupData): Promise<AuthResponse> {
     try {
       const response = await authAPI.post('/signup', data);
+      
+      if (response.data.success && response.data.token) {
+        // Store token and user data
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('authUser', JSON.stringify(response.data.user));
+      }
+      
       return response.data;
     } catch (error: any) {
+      console.error('Signup API error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Signup failed',
@@ -62,12 +73,11 @@ export class AuthService {
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await authAPI.post('/login', credentials);
-      const { token, user } = response.data;
       
-      if (token) {
+      if (response.data.success && response.data.token) {
         // Store token and user data
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('authUser', JSON.stringify(user));
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('authUser', JSON.stringify(response.data.user));
         
         // Set remember me preference
         if (credentials.rememberMe) {
@@ -77,6 +87,7 @@ export class AuthService {
       
       return response.data;
     } catch (error: any) {
+      console.error('Login API error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed',
@@ -102,6 +113,7 @@ export class AuthService {
       const response = await authAPI.post('/forgot-password', { email });
       return response.data;
     } catch (error: any) {
+      console.error('Forgot password API error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Password reset request failed'
@@ -117,6 +129,7 @@ export class AuthService {
       const response = await authAPI.post('/reset-password', data);
       return response.data;
     } catch (error: any) {
+      console.error('Reset password API error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Password reset failed',
@@ -132,7 +145,8 @@ export class AuthService {
     try {
       const userStr = localStorage.getItem('authUser');
       return userStr ? JSON.parse(userStr) : null;
-    } catch {
+    } catch (error) {
+      console.error('Error parsing user data:', error);
       return null;
     }
   }
@@ -160,7 +174,8 @@ export class AuthService {
     try {
       const response = await authAPI.get('/verify');
       return response.data.valid;
-    } catch {
+    } catch (error) {
+      console.error('Token verification failed:', error);
       return false;
     }
   }
@@ -171,15 +186,15 @@ export class AuthService {
   static async socialLogin(provider: string, token: string): Promise<AuthResponse> {
     try {
       const response = await authAPI.post(`/social/${provider}`, { token });
-      const { token: authToken, user } = response.data;
       
-      if (authToken) {
-        localStorage.setItem('authToken', authToken);
-        localStorage.setItem('authUser', JSON.stringify(user));
+      if (response.data.success && response.data.token) {
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('authUser', JSON.stringify(response.data.user));
       }
       
       return response.data;
     } catch (error: any) {
+      console.error('Social login API error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Social login failed'

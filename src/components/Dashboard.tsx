@@ -10,15 +10,15 @@ interface DashboardProps {
 }
 
 export function Dashboard({ user, todayStats }: DashboardProps) {
-  const calorieProgress = (todayStats.calories / user.goals.calories) * 100;
-  const waterProgress = (todayStats.water / user.goals.water) * 100;
-  const exerciseProgress = (todayStats.exercise / user.goals.exercise) * 100;
+  const calorieProgress = Math.min((todayStats.calories / user.goals.calories) * 100, 100);
+  const waterProgress = Math.min((todayStats.water / user.goals.water) * 100, 100);
+  const exerciseProgress = Math.min((todayStats.exercise / user.goals.exercise) * 100, 100);
   
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Welcome back, Siddhartha Nagula!</h1>
+        <h1 className="text-2xl font-bold mb-2">Welcome back, {user.name}!</h1>
         <p className="text-emerald-100">You're doing great! Keep up the healthy habits.</p>
         <div className="flex items-center mt-4 space-x-4">
           <div className="flex items-center space-x-2">
@@ -46,7 +46,7 @@ export function Dashboard({ user, todayStats }: DashboardProps) {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Consumed</span>
-                <span className="font-medium">{todayStats.calories} / {user.goals.calories}</span>
+                <span className="font-medium">{Math.round(todayStats.calories)} / {user.goals.calories}</span>
               </div>
               <Progress 
                 value={todayStats.calories} 
@@ -54,7 +54,7 @@ export function Dashboard({ user, todayStats }: DashboardProps) {
                 color="emerald"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {user.goals.calories - todayStats.calories} calories remaining
+                {Math.max(0, user.goals.calories - todayStats.calories)} calories remaining
               </p>
             </div>
           </CardContent>
@@ -124,15 +124,15 @@ export function Dashboard({ user, todayStats }: DashboardProps) {
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-500">{todayStats.protein}g</div>
+              <div className="text-2xl font-bold text-emerald-500">{Math.round(todayStats.protein)}g</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Protein</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-500">{todayStats.carbs}g</div>
+              <div className="text-2xl font-bold text-blue-500">{Math.round(todayStats.carbs)}g</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Carbs</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-500">{todayStats.fat}g</div>
+              <div className="text-2xl font-bold text-purple-500">{Math.round(todayStats.fat)}g</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Fat</div>
             </div>
           </div>

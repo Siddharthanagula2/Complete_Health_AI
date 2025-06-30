@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Dashboard } from './Dashboard';
@@ -93,6 +93,12 @@ export function MainApp() {
   const [moodEntries, setMoodEntries] = useLocalStorage<MoodEntry[]>('health-mood-entries', []);
   const [dailyStats] = useLocalStorage<DailyStats[]>('health-daily-stats', mockDailyStats);
   const [achievements] = useLocalStorage<Achievement[]>('health-achievements', mockAchievements);
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    const newTab = getActiveTabFromPath(location.pathname);
+    setActiveTab(newTab);
+  }, [location.pathname]);
 
   // Calculate today's stats
   const today = new Date().toDateString();
@@ -234,49 +240,71 @@ export function MainApp() {
   ];
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard user={user} todayStats={todayStats} />;
-      case 'food':
-        return <FoodLog entries={foodEntries} onAddEntry={addFoodEntry} />;
-      case 'water':
-        return <WaterTracker entries={waterEntries} onAddEntry={addWaterEntry} goal={user.goals.water} />;
-      case 'exercise':
-        return <ExerciseLog entries={exerciseEntries} onAddEntry={addExerciseEntry} goal={user.goals.exercise} />;
-      case 'gps-workout':
-        return <GPSWorkoutTracker onWorkoutComplete={addGPSWorkout} />;
-      case 'sleep':
-        return <SleepTracker entries={sleepEntries} onAddEntry={addSleepEntry} goal={8} />;
-      case 'mood':
-        return <MoodTracker entries={moodEntries} onAddEntry={addMoodEntry} />;
-      case 'nutrition-planner':
-        return <NutritionPlanner user={user} />;
-      case 'progress':
-        return <Progress stats={[todayStats, ...dailyStats]} achievements={achievements} userGoals={user.goals} />;
-      case 'analytics':
-        return <AdvancedAnalytics stats={[todayStats, ...dailyStats]} user={user} />;
-      case 'insights':
-        return <HealthInsights />;
-      case 'achievements':
-        return <Achievements />;
-      case 'ai-coach':
-        return <AIHealthCoach user={user} todayStats={todayStats} />;
-      case 'family':
-        return <FamilyDashboard />;
-      case 'social':
-        return <SocialCommunity user={user} />;
-      case 'provider-portal':
-        return <ProviderPortal />;
-      case 'medical-records':
-        return <MedicalRecords />;
-      case 'medical':
-        return <MedicalProfessionalTools user={user} stats={[todayStats, ...dailyStats]} />;
-      case 'settings':
-        return <Settings user={user} onUpdateUser={updateUser} />;
-      case 'profile':
-        return <Profile user={user} onUpdateUser={updateUser} />;
-      default:
-        return <Dashboard user={user} todayStats={todayStats} />;
+    try {
+      switch (activeTab) {
+        case 'dashboard':
+          return <Dashboard user={user} todayStats={todayStats} />;
+        case 'food':
+          return <FoodLog entries={foodEntries} onAddEntry={addFoodEntry} />;
+        case 'water':
+          return <WaterTracker entries={waterEntries} onAddEntry={addWaterEntry} goal={user.goals.water} />;
+        case 'exercise':
+          return <ExerciseLog entries={exerciseEntries} onAddEntry={addExerciseEntry} goal={user.goals.exercise} />;
+        case 'gps-workout':
+          return <GPSWorkoutTracker onWorkoutComplete={addGPSWorkout} />;
+        case 'sleep':
+          return <SleepTracker entries={sleepEntries} onAddEntry={addSleepEntry} goal={8} />;
+        case 'mood':
+          return <MoodTracker entries={moodEntries} onAddEntry={addMoodEntry} />;
+        case 'nutrition-planner':
+          return <NutritionPlanner user={user} />;
+        case 'progress':
+          return <Progress stats={[todayStats, ...dailyStats]} achievements={achievements} userGoals={user.goals} />;
+        case 'analytics':
+          return <AdvancedAnalytics stats={[todayStats, ...dailyStats]} user={user} />;
+        case 'insights':
+          return <HealthInsights />;
+        case 'achievements':
+          return <Achievements />;
+        case 'ai-coach':
+          return <AIHealthCoach user={user} todayStats={todayStats} />;
+        case 'family':
+          return <FamilyDashboard />;
+        case 'social':
+          return <SocialCommunity user={user} />;
+        case 'provider-portal':
+          return <ProviderPortal />;
+        case 'medical-records':
+          return <MedicalRecords />;
+        case 'medical':
+          return <MedicalProfessionalTools user={user} stats={[todayStats, ...dailyStats]} />;
+        case 'settings':
+          return <Settings user={user} onUpdateUser={updateUser} />;
+        case 'profile':
+          return <Profile user={user} onUpdateUser={updateUser} />;
+        default:
+          return <Dashboard user={user} todayStats={todayStats} />;
+      }
+    } catch (error) {
+      console.error('Error rendering content:', error);
+      return (
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Something went wrong
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Please try refreshing the page or selecting a different tab.
+            </p>
+            <button
+              onClick={() => handleTabChange('dashboard')}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      );
     }
   };
 

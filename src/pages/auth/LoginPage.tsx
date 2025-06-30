@@ -30,10 +30,18 @@ export function LoginPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const error = urlParams.get('error');
+    const token = urlParams.get('token');
+    
     if (error) {
       setSubmitError(decodeURIComponent(error));
     }
-  }, [location.search]);
+    
+    // Handle OAuth success with token
+    if (token) {
+      localStorage.setItem('authToken', token);
+      navigate(from, { replace: true });
+    }
+  }, [location.search, navigate, from]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -133,8 +141,12 @@ export function LoginPage() {
 
   const handleGoogleLogin = () => {
     // Redirect to backend Google OAuth endpoint
-    const baseUrl = window.location.origin;
-    window.location.href = `${baseUrl}/.netlify/functions/index/auth/google`;
+    const currentUrl = window.location.origin;
+    const redirectUrl = process.env.NODE_ENV === 'production' 
+      ? `${currentUrl}/.netlify/functions/index/auth/google`
+      : 'http://localhost:3001/auth/google';
+    
+    window.location.href = redirectUrl;
   };
 
   return (
