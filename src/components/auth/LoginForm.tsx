@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/types/supabase';
 
 // Define the validation schema
 const loginSchema = z.object({
@@ -17,9 +18,8 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const router = useRouter();
+  const supabase = createClientComponentClient<Database>();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -63,17 +63,18 @@ export default function LoginForm() {
         } else {
           setServerError(error.message);
         }
-        setIsLoading(false);
         return;
       }
       
       if (authData.user) {
         // Successful login, redirect to dashboard
-        navigate(from, { replace: true });
+        router.push('/dashboard');
+        router.refresh();
       }
     } catch (error) {
       console.error('Login error:', error);
       setServerError('An unexpected error occurred. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
