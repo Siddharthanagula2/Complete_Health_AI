@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -18,6 +18,11 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the return URL from query params or default to dashboard
+  const searchParams = new URLSearchParams(location.search);
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +43,10 @@ export default function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    // Clear any previous errors
     setServerError(null);
+    
+    // Set loading state
     setIsLoading(true);
     
     try {
@@ -59,34 +67,39 @@ export default function LoginForm() {
         } else if (error.message.includes('Email not confirmed')) {
           setServerError('Please verify your email address before signing in.');
         } else {
-          setServerError(error.message);
+          setServerError(error.message || 'An error occurred during sign in.');
         }
         return;
       }
       
       if (authData.user) {
-        // Successful login, redirect to dashboard
-        navigate('/dashboard');
+        // Successful login, redirect to dashboard or return URL
+        navigate(returnUrl);
+      } else {
+        // This should rarely happen, but handle it just in case
+        setServerError('Login successful but user data is missing. Please try again.');
       }
     } catch (error) {
+      // Handle unexpected errors (network issues, etc.)
       console.error('Login error:', error);
-      setServerError('An unexpected error occurred. Please try again.');
+      setServerError('An unexpected error occurred. Please check your connection and try again.');
     } finally {
+      // Always reset loading state, regardless of outcome
       setIsLoading(false);
     }
   };
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-gray-800 rounded-2xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Sign In</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Sign In</h2>
         
         {/* Error Message */}
         {serverError && (
-          <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2">
               <AlertCircle className="text-red-500" size={20} />
-              <p className="text-red-400 text-sm">{serverError}</p>
+              <p className="text-red-700 dark:text-red-400 text-sm">{serverError}</p>
             </div>
           </div>
         )}
@@ -94,20 +107,20 @@ export default function LoginForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Email Field */}
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Email Address
             </label>
             <div className="relative">
               <input
                 id="email"
                 type="email"
-                className={`w-full px-4 py-3 bg-gray-700 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
+                className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
                   errors.email
                     ? 'border-red-600 focus:border-red-500 focus:ring-red-900/50'
                     : touchedFields.email && !errors.email
                     ? 'border-green-600 focus:border-green-500 focus:ring-green-900/50'
-                    : 'border-gray-600 focus:border-emerald-500 focus:ring-emerald-900/50'
-                } text-white`}
+                    : 'border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-900/50'
+                } text-gray-900 dark:text-white`}
                 placeholder="your.email@example.com"
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? "email-error" : undefined}
@@ -134,20 +147,20 @@ export default function LoginForm() {
 
           {/* Password Field */}
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Password
             </label>
             <div className="relative">
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                className={`w-full px-4 py-3 pr-12 bg-gray-700 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
+                className={`w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-gray-700 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
                   errors.password
                     ? 'border-red-600 focus:border-red-500 focus:ring-red-900/50'
                     : touchedFields.password && !errors.password
                     ? 'border-green-600 focus:border-green-500 focus:ring-green-900/50'
-                    : 'border-gray-600 focus:border-emerald-500 focus:ring-emerald-900/50'
-                } text-white`}
+                    : 'border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-900/50'
+                } text-gray-900 dark:text-white`}
                 placeholder="••••••••"
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? "password-error" : undefined}
@@ -156,7 +169,7 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors focus:outline-none"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none"
                 tabIndex={-1}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -176,15 +189,15 @@ export default function LoginForm() {
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
-                className="w-4 h-4 text-emerald-500 bg-gray-700 border-gray-600 rounded focus:ring-emerald-600 focus:ring-offset-gray-800"
+                className="w-4 h-4 text-emerald-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-emerald-500 focus:ring-2"
                 {...register('rememberMe')}
               />
-              <span className="text-sm text-gray-300">Remember me</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Remember me</span>
             </label>
             
             <a
               href="/forgot-password"
-              className="text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+              className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors"
             >
               Forgot password?
             </a>
@@ -209,11 +222,11 @@ export default function LoginForm() {
 
         {/* Sign Up Link */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
             <a
               href="/signup"
-              className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+              className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors"
             >
               Sign up
             </a>
