@@ -13,7 +13,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string; requiresEmailConfirmation?: boolean }>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
@@ -104,8 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Sign in function
   const login = async (
     email: string, 
-    password: string, 
-    rememberMe: boolean = true
+    password: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);

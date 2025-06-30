@@ -196,7 +196,7 @@ export class SupabaseAuthService {
   static async resetPassword(data: PasswordReset): Promise<AuthResponse> {
     try {
       const { error } = await supabase.auth.updateUser({
-        password: data.password
+        password: data.newPassword
       });
 
       if (error) {
@@ -276,39 +276,6 @@ export class SupabaseAuthService {
       return {
         success: false,
         message: 'An unexpected error occurred during signup'
-      };
-    }
-  }
-
-  /**
-   * Social login (Google, GitHub, etc.)
-   */
-  static async socialLogin(provider: 'google' | 'github' | 'discord'): Promise<AuthResponse> {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-
-      if (error) {
-        return {
-          success: false,
-          message: error.message
-        };
-      }
-
-      // This will redirect the user to the OAuth provider
-      return {
-        success: true,
-        message: 'Redirecting to login provider...'
-      };
-    } catch (error: any) {
-      console.error('Social login error:', error);
-      return {
-        success: false,
-        message: error.message || 'Social login failed'
       };
     }
   }
