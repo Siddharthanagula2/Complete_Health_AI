@@ -1,5 +1,5 @@
 // AI-generated health insights based on user data patterns
-export interface AIInsight {
+interface AIInsight {
   id: string;
   type: 'recommendation' | 'warning' | 'achievement' | 'prediction';
   title: string;
@@ -11,7 +11,7 @@ export interface AIInsight {
   action?: string;
 }
 
-export const generateNutritionInsights = (
+const generateNutritionInsights = (
   nutritionData: Array<{
     calories: number;
     protein: number;
@@ -163,7 +163,7 @@ export const generateNutritionInsights = (
   return insights;
 };
 
-export const generateFitnessInsights = (
+const generateFitnessInsights = (
   exerciseData: Array<{
     duration: number;
     type: string;
@@ -320,7 +320,7 @@ export const generateFitnessInsights = (
   return insights;
 };
 
-export const generateSleepInsights = (
+const generateSleepInsights = (
   sleepData: Array<{
     duration: number;
     quality: number;
@@ -447,7 +447,7 @@ export const generateSleepInsights = (
   return insights;
 };
 
-export const generateHealthInsights = (
+const generateHealthInsights = (
   healthData: {
     sleep: Array<{ duration: number; quality: number; date: Date }>;
     exercise: Array<{ duration: number; type: string; intensity: string; date: Date }>;

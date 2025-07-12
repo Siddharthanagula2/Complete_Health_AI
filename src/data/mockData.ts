@@ -465,7 +465,7 @@ export const mockExercises = exerciseDatabase.slice(0, 10).map((item, index) => 
 }));
 
 // Generate health correlations
-export const mockHealthCorrelations = [
+const mockHealthCorrelations = [
   {
     id: '1',
     metric1: 'Sleep Duration',
@@ -514,7 +514,7 @@ export const mockHealthCorrelations = [
 ];
 
 // Generate health insights
-export const mockHealthInsights = [
+const mockHealthInsights = [
   {
     id: '1',
     type: 'positive',
@@ -578,7 +578,7 @@ export const mockHealthInsights = [
 ];
 
 // Generate meal plans
-export const mockMealPlans = [
+const mockMealPlans = [
   {
     id: '1',
     date: new Date(),
@@ -639,7 +639,7 @@ export const mockMealPlans = [
 ];
 
 // Generate recipes
-export const mockRecipes = [
+const mockRecipes = [
   {
     id: '1',
     name: 'Protein-Packed Smoothie Bowl',
@@ -728,7 +728,7 @@ export const mockRecipes = [
 ];
 
 // Generate health data for charts and analytics
-export function generateHealthData(days: number): DailyStats[] {
+function generateHealthData(days: number): DailyStats[] {
   const data: DailyStats[] = [];
   const today = new Date();
   
@@ -789,7 +789,7 @@ export function generateHealthData(days: number): DailyStats[] {
 export const mockDailyStats: DailyStats[] = generateHealthData(30);
 
 // Generate food database for search
-export const mockFoods = nutritionDatabase.slice(0, 20).map(item => ({
+const mockFoods = nutritionDatabase.slice(0, 20).map(item => ({
   id: item.id,
   name: item.name,
   brand: item.brand,

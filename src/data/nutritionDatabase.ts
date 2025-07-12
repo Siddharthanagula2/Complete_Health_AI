@@ -1,5 +1,5 @@
 // Comprehensive nutrition database with real USDA and international food data
-export interface NutritionItem {
+interface NutritionItem {
   id: string;
   name: string;
   brand?: string;
@@ -542,7 +542,7 @@ export const nutritionDatabase: NutritionItem[] = [
 ];
 
 // Food categories for filtering
-export const foodCategories = [
+const foodCategories = [
   'Fruits',
   'Vegetables',
   'Proteins',
@@ -556,7 +556,7 @@ export const foodCategories = [
 ];
 
 // Common allergens
-export const commonAllergens = [
+const commonAllergens = [
   'Milk',
   'Eggs',
   'Fish',
@@ -569,7 +569,7 @@ export const commonAllergens = [
 ];
 
 // Dietary tags for filtering
-export const dietaryTags = [
+const dietaryTags = [
   'vegetarian',
   'vegan',
   'gluten-free',
@@ -587,7 +587,7 @@ export const dietaryTags = [
 ];
 
 // Nutrition search and filtering functions
-export function searchFoods(query: string): NutritionItem[] {
+function searchFoods(query: string): NutritionItem[] {
   const lowercaseQuery = query.toLowerCase();
   return nutritionDatabase.filter(item =>
     item.name.toLowerCase().includes(lowercaseQuery) ||
@@ -597,20 +597,20 @@ export function searchFoods(query: string): NutritionItem[] {
   );
 }
 
-export function getFoodsByCategory(category: string): NutritionItem[] {
+function getFoodsByCategory(category: string): NutritionItem[] {
   return nutritionDatabase.filter(item => item.category === category);
 }
 
-export function getFoodsByTag(tag: string): NutritionItem[] {
+function getFoodsByTag(tag: string): NutritionItem[] {
   return nutritionDatabase.filter(item => item.tags?.includes(tag));
 }
 
-export function getFoodById(id: string): NutritionItem | undefined {
+function getFoodById(id: string): NutritionItem | undefined {
   return nutritionDatabase.find(item => item.id === id);
 }
 
 // Nutrition calculation helpers
-export function calculateNutritionForServing(
+function calculateNutritionForServing(
   food: NutritionItem,
   servingMultiplier: number
 ): NutritionItem['nutrition'] {
@@ -626,7 +626,7 @@ export function calculateNutritionForServing(
   return nutrition;
 }
 
-export function getTotalNutrition(foods: Array<{ food: NutritionItem; servings: number }>): NutritionItem['nutrition'] {
+function getTotalNutrition(foods: Array<{ food: NutritionItem; servings: number }>): NutritionItem['nutrition'] {
   const total: NutritionItem['nutrition'] = {
     calories: 0,
     protein: 0,

@@ -48,7 +48,7 @@ interface CardFooterProps {
   className?: string;
 }
 
-export function CardFooter({ children, className = '' }: CardFooterProps) {
+function CardFooter({ children, className = '' }: CardFooterProps) {
   return (
     <div className={`p-4 pt-0 ${className}`}>
       {children}

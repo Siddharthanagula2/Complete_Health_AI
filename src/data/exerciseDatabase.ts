@@ -1,5 +1,5 @@
 // Comprehensive exercise database with real MET values and calorie calculations
-export interface ExerciseData {
+interface ExerciseData {
   id: string;
   name: string;
   category: string;
@@ -321,7 +321,7 @@ export const exerciseDatabase: ExerciseData[] = [
 ];
 
 // Exercise categories
-export const exerciseCategories = [
+const exerciseCategories = [
   'Cardiovascular',
   'Strength Training',
   'Flexibility',
@@ -330,7 +330,7 @@ export const exerciseCategories = [
 ];
 
 // Muscle groups
-export const muscleGroups = [
+const muscleGroups = [
   'Chest',
   'Back',
   'Shoulders',
@@ -349,7 +349,7 @@ export const muscleGroups = [
 ];
 
 // Equipment types
-export const equipmentTypes = [
+const equipmentTypes = [
   'None (Bodyweight)',
   'Dumbbells',
   'Barbells',
@@ -363,7 +363,7 @@ export const equipmentTypes = [
 ];
 
 // Calorie calculation function
-export function calculateCaloriesBurned(
+function calculateCaloriesBurned(
   exerciseId: string,
   durationMinutes: number,
   weightKg: number
@@ -379,7 +379,7 @@ export function calculateCaloriesBurned(
 }
 
 // Search and filter functions
-export function searchExercises(query: string): ExerciseData[] {
+function searchExercises(query: string): ExerciseData[] {
   const lowercaseQuery = query.toLowerCase();
   return exerciseDatabase.filter(exercise =>
     exercise.name.toLowerCase().includes(lowercaseQuery) ||
@@ -389,21 +389,21 @@ export function searchExercises(query: string): ExerciseData[] {
   );
 }
 
-export function getExercisesByCategory(category: string): ExerciseData[] {
+function getExercisesByCategory(category: string): ExerciseData[] {
   return exerciseDatabase.filter(exercise => exercise.category === category);
 }
 
-export function getExercisesByMuscleGroup(muscleGroup: string): ExerciseData[] {
+function getExercisesByMuscleGroup(muscleGroup: string): ExerciseData[] {
   return exerciseDatabase.filter(exercise => 
     exercise.muscleGroups.includes(muscleGroup)
   );
 }
 
-export function getExercisesByDifficulty(difficulty: ExerciseData['difficulty']): ExerciseData[] {
+function getExercisesByDifficulty(difficulty: ExerciseData['difficulty']): ExerciseData[] {
   return exerciseDatabase.filter(exercise => exercise.difficulty === difficulty);
 }
 
-export function getExercisesByEquipment(equipment: string): ExerciseData[] {
+function getExercisesByEquipment(equipment: string): ExerciseData[] {
   if (equipment === 'None (Bodyweight)') {
     return exerciseDatabase.filter(exercise => 
       !exercise.equipment || exercise.equipment.length === 0
@@ -415,12 +415,12 @@ export function getExercisesByEquipment(equipment: string): ExerciseData[] {
   );
 }
 
-export function getExerciseById(id: string): ExerciseData | undefined {
+function getExerciseById(id: string): ExerciseData | undefined {
   return exerciseDatabase.find(exercise => exercise.id === id);
 }
 
 // Workout plan generation
-export interface WorkoutPlan {
+interface WorkoutPlan {
   id: string;
   name: string;
   description: string;
@@ -436,7 +436,7 @@ export interface WorkoutPlan {
   totalCalories: number;
 }
 
-export function generateWorkoutPlan(
+function generateWorkoutPlan(
   type: 'strength' | 'cardio' | 'hiit' | 'flexibility',
   duration: number,
   difficulty: ExerciseData['difficulty'],

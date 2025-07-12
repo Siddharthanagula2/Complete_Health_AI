@@ -6,10 +6,6 @@ import { LoadingScreen } from './components/LoadingScreen';
 
 // Lazy load components to reduce initial bundle size
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
-const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
-const SignupPage = React.lazy(() => import('./pages/auth/SignupPage'));
-const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
-const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPage'));
 const MainApp = React.lazy(() => import('./components/MainApp'));
 
 // Error Boundary Component

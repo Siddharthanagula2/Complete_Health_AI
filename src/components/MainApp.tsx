@@ -76,7 +76,7 @@ import { SupabaseHealthService } from '../services/supabaseHealthService';
 
 type ActiveTab = 'dashboard' | 'food' | 'water' | 'exercise' | 'progress' | 'profile' | 'ai-coach' | 'gps-workout' | 'analytics' | 'social' | 'medical' | 'nutrition-planner' | 'sleep' | 'mood' | 'insights' | 'achievements' | 'family' | 'provider-portal' | 'medical-records' | 'settings' | 'integrations' | 'medications';
 
-export function MainApp() {
+function MainApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user: authUser } = useAuth();
