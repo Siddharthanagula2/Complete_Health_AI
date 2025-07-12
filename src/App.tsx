@@ -62,6 +62,12 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               
+              {/* Temporary placeholder pages for missing auth pages */}
+              <Route path="/login" element={<div className="min-h-screen flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold mb-4">Login Page</h1><p>Login functionality coming soon</p></div></div>} />
+              <Route path="/signup" element={<div className="min-h-screen flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold mb-4">Signup Page</h1><p>Signup functionality coming soon</p></div></div>} />
+              <Route path="/forgot-password" element={<div className="min-h-screen flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold mb-4">Forgot Password</h1><p>Password recovery coming soon</p></div></div>} />
+              <Route path="/reset-password" element={<div className="min-h-screen flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold mb-4">Reset Password</h1><p>Password reset coming soon</p></div></div>} />
+              
               {/* Protected Routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
